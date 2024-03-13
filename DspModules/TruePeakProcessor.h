@@ -3,7 +3,8 @@
 
     TruePeakProcessor.h
     Created: 13 Mar 2024 3:54:33pm
-    Author:  prmir
+    Author:  Decca (https://github.com/deccauvw)
+
 
   ==============================================================================
 */

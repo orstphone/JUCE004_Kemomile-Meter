@@ -57,7 +57,6 @@ AudioProcessing::TruePeak::TruePeak()
 
 }
 
-
 AudioProcessing::TruePeak::~TruePeak()
 {
 }
@@ -152,7 +151,6 @@ AudioProcessing::TruePeak::LinearValue AudioProcessing::TruePeak::process(const 
 
     if (TruePeak::m_inputs.getNumSamples() > numCoeffs)
     {
-        juce::AudioBuffer<float> tempBuffer;
         for (int ch = 0; ch < buffer.getNumChannels(); ++ch)
         {
             TruePeak::m_inputs.copyFrom(ch, 0, buffer.getArrayOfReadPointers()[ch], TruePeak::m_inputs.getNumSamples() - numCoeffs, numCoeffs);
