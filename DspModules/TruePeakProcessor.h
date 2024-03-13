@@ -20,7 +20,7 @@ class AudioProcessing
 {
 public:
     //applies TP processing on fly
-    static float processTruePeak(const juce::AudioBuffer<float>& buffer, const int bufferSize);
+    static float processTruePeak(const juce::AudioBuffer<float>& buffer);
 
     //True Peak class calculates True Peak linear Volume for Buffer
 
@@ -54,7 +54,7 @@ public:
             
         };
 
-        TruePeak();
+
         //process : since this method needs numCoeffs values more than buffer size,
         //numCoeffs values from prev. process call are used at beginning of buffer
         LinearValue process(const juce::AudioBuffer<float>& buffer);

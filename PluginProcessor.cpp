@@ -143,14 +143,17 @@ void KemomileMeterAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-
-
+    //star from here:
+    float TruePeakValue = juce::Decibels::gainToDecibels(truePeakProcessor.process(buffer).getMax(), -INFINITY);
+    setLevelTruePeak(TruePeakValue);
+    /*
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
         auto* channelData = buffer.getWritePointer (channel);
 
         // ..do something to the data...
     }
+    */
 }
 
 //==============================================================================
@@ -161,9 +164,9 @@ bool KemomileMeterAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* KemomileMeterAudioProcessor::createEditor()
 {
-    //return new KemomileMeterAudioProcessorEditor (*this);
+    return new KemomileMeterAudioProcessorEditor (*this);
     //generic GUI
-    return new juce::GenericAudioProcessorEditor(*this);
+    //return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================
@@ -178,6 +181,23 @@ void KemomileMeterAudioProcessor::setStateInformation (const void* data, int siz
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+}
+
+float KemomileMeterAudioProcessor::getLevelTruePeak()
+{
+    return levelTruePeakValue;
+}
+
+void KemomileMeterAudioProcessor::setLevelTruePeak(float level)
+{
+    if (level > levelTruePeakValue)
+    {
+        levelTruePeakValue = level;
+    }
+    else
+    {
+        //empty
+    }
 }
 
 

@@ -11,18 +11,21 @@
 
 //==============================================================================
 KemomileMeterAudioProcessorEditor::KemomileMeterAudioProcessorEditor (KemomileMeterAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p),
+    : AudioProcessorEditor (&p), audioProcessor (p)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
     extended = false;
 
-    setSize (1200, 600);
-
-
+    setSize (400, 300);
     startTimerHz(24);
-    startTimer(100.f);
 
+    addAndMakeVisible(numericLabel);
+    numericLabel.setColour(juce::Label::textColourId, juce::Colours::azure);
+    numericLabel.setFont(juce::Font("Times New Roman", 20.0f, juce::Font::plain));
+    numericLabel.setSize(60, 30);
+    numericLabel.setEditable(false);
+    startTimer(100.f);
 
 }
 
@@ -32,7 +35,7 @@ KemomileMeterAudioProcessorEditor::~KemomileMeterAudioProcessorEditor()
 
 void KemomileMeterAudioProcessorEditor::timerCallback()
 {
-    //empty atm before you introduce meters
+    numericLabel.setText(juce::String(audioProcessor.getLevelTruePeak()), juce::dontSendNotification);
 }
 
 //==============================================================================
@@ -47,4 +50,5 @@ void KemomileMeterAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
+    numericLabel.setBounds(100, 100, 200, 15);
 }

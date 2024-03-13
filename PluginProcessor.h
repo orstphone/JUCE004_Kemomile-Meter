@@ -13,6 +13,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "DspModules/TruePeakProcessor.h"
 
 enum MeterType
 {
@@ -30,17 +31,24 @@ struct MeterSettings
     MeterType meterType{ MeterType::Peak };
 };
 
+
 MeterSettings getMeterSettings(juce::AudioProcessorValueTreeState& apvts);
 
 //==============================================================================
 /**
 */
-class KemomileMeterAudioProcessor  : public juce::AudioProcessor
+class KemomileMeterAudioProcessor : public juce::AudioProcessor
 {
 public:
     //==============================================================================
     KemomileMeterAudioProcessor();
     ~KemomileMeterAudioProcessor() override;
+
+    AudioProcessing::TruePeak truePeakProcessor;
+    //juce::AudioParameterFloat* targetLoudness;
+
+    float levelTruePeakValue = -INFINITY;
+    
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
@@ -76,7 +84,8 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
     juce::AudioProcessorValueTreeState apvts{ *this, nullptr, "Parameters", createParameterLayout() };
     //==============================================================================
-    float getLevelPeak(const int channel) const;
+    float getLevelTruePeak();
+    void setLevelTruePeak(float level);
     //float getLevelRms(const int channel) const;
     //float getLevelVu(const int channel) const;
     //float getLevelLu(const int CHannel) const;
