@@ -18,6 +18,7 @@ constexpr int RECTIFIER_MAX_NB_CHANNELS = 2;
 */
 namespace DspModules
 {
+    juce::AudioSampleBuffer prev_inputs;
     void drawProcessedBuffer(const juce::AudioBuffer<float>& buffer);
     //replace input buffer with processed buffer
 
@@ -64,7 +65,8 @@ namespace DspModules
     private:
         LinearValue RectifyAndSmoothout(const juce::AudioBuffer<float>& buffer);
         juce::AudioSampleBuffer m_inputs; //sAR process this buffer
-        juce::AudioSampleBuffer prev_inputs;
+        
+
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(RectifierProcessor)
     };
 //private:

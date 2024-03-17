@@ -56,6 +56,9 @@ public:
         };
 
 
+
+
+
         //process : since this method needs numCoeffs values more than buffer size,
         //numCoeffs values from prev. process call are used at beginning of buffer
         LinearValue process(const juce::AudioBuffer<float>& buffer);
