@@ -137,6 +137,10 @@ private:
 
     int numberOfBlocksToCalculateRelativeThreshold;
     double sumOfAllBlocksToCalculateRelativeThreshold;
+    double relativeThreshold;
+
+    int numberOfBlocksToCalculateRelativeThresholdLRA;
+    double sumOfAllBlocksToCalculateRelativeThresholdLRA;
     double relativeThresholdLRA;
 
     static const double lowestBlockLoudnessToConsider;

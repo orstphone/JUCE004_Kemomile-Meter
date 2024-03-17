@@ -66,7 +66,6 @@ protected:
 
 private:
     //==============================================================================
-
     //filter params that are set in the constructor and used in
     //prepareToPlay to cal. the filter coeffs.
     // 
