@@ -119,7 +119,7 @@ private:
     //the avr. of the filtered and squared samples of the last 3 seconds.
     //a value for each channel.
 
-    vector<double> averafeOfTheLast400ms;
+    vector<double> averageOfTheLast400ms;
 
     vector<double> channelWeighting;
 
