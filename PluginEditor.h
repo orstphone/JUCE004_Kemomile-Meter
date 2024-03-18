@@ -23,9 +23,9 @@ public:
     ~KemomileMeterAudioProcessorEditor() override;
 
     //==============================================================================
-    int integratedLoudnessPrecision = 0;
-    int maximumShortTermLoudnessPrecision = 0;
-    int maximumTruePeakLevelPrecision = 1;
+    int _integratedLoudnessPrecision = 0;
+    int _maximumShortTermLoudnessPrecision = 0;
+    int _maximumTruePeakLevelPrecision = 1;
     bool extended;
 
     void drawBarGraph(
@@ -49,7 +49,7 @@ public:
     const juce::Colour grey = juce::Colour(0xff575757);
     //==================//==================//==================//==================
 
-    void timerCallback() override;
+   void timerCallback() override;
     void paint (juce::Graphics&) override;
     void resized() override;
 
@@ -76,7 +76,8 @@ private:
 
 
     void resetIntegratedLoudness();
-    void choosePreset();
+    void handlePreset(int choice);
+    void ShowAndChoosePreset();
     void hide();
 
 

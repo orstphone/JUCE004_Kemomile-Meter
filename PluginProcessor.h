@@ -14,6 +14,7 @@
 
 #include <JuceHeader.h>
 #include "DspModules/TruePeakProcessor.h"
+#include "DspModules/Ebu128LoudnessMeterProcessor.h"
 
 enum MeterType
 {
@@ -32,6 +33,7 @@ struct MeterSettings
 };
 
 
+
 MeterSettings getMeterSettings(juce::AudioProcessorValueTreeState& apvts);
 
 //==============================================================================
@@ -44,11 +46,31 @@ public:
     KemomileMeterAudioProcessor();
     ~KemomileMeterAudioProcessor() override;
 
-    AudioProcessing::TruePeak truePeakProcessor;
-    //juce::AudioParameterFloat* targetLoudness;
 
+    juce::WindowedSincInterpolator interpolator;
+    juce::AudioBuffer<float> interpolatedBuffer;
+
+    Ebu128LoudnessMeterProcessor loudnessMeterProcessor;
+    AudioProcessing::TruePeak truePeakProcessor;
+
+    juce::AudioParameterFloat* targetIntegratedLoudness;
+    juce::AudioParameterFloat* targetMaximumShortTermLoudness;
+    juce::AudioParameterFloat* targetMaximumTruePeakLevel;
+
+    float integratedLoudness = -INFINITY;
+    float shortTermLoudness = -INFINITY;
+    float momentaryLoudness = -INFINITY;
+    float maximumShortTermLoudness = -INFINITY;
+    float maximumMomentaryLoudness = -INFINITY;
+    float loudnessRange = 0;
+    float peakLevel = -INFINITY;
+    float maximumPeakLevel = -INFINITY;
+    float truePeakLevel = -INFINITY;
+    float maximumTruePeakLevel = -INFINITY;
     float levelTruePeakValue = -INFINITY;
-    
+    bool measurementPaused = true;
+    const int oversampling = 2;
+    void resetIntegratedLoudness();
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
@@ -82,23 +104,21 @@ public:
     //==============================================================================
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
-    juce::AudioProcessorValueTreeState apvts{ *this, nullptr, "Parameters", createParameterLayout() };
+
+    //juce::AudioProcessorValueTreeState apvts{ *this, nullptr, "Parameters", createParameterLayout() };
     //==============================================================================
-    float getLevelTruePeak();
-    void setLevelTruePeak(float level);
-    //float getLevelRms(const int channel) const;
-    //float getLevelVu(const int channel) const;
-    //float getLevelLu(const int CHannel) const;
 
 private:
     //==============================================================================
+    
+    /*
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
     using Gain = juce::dsp::Gain<float>;
     using MonoChain = juce::dsp::ProcessorChain<Gain, Gain, Gain, Gain>; //In, Out, Ref, Target
 
     MonoChain chainLeft, chainRight;
-
+    */
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (KemomileMeterAudioProcessor)

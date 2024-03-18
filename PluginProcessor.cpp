@@ -21,6 +21,10 @@ KemomileMeterAudioProcessor::KemomileMeterAudioProcessor()
                        )
 #endif
 {
+    addParameter(targetIntegratedLoudness = new juce::AudioParameterFloat({ "targetIntegratedLoudenss", 1 }, "Integrated", juce::NormalisableRange<float>(-50.0f, 0.0f, 1.0f), -23.0f));
+    addParameter(targetMaximumShortTermLoudness = new juce::AudioParameterFloat({ "targetMaximumShortTermLoudness", 1 }, "Maximum Short Term", juce::NormalisableRange<float>(-50.0f, 0.0f, 1.0f), -18.0f));
+    addParameter(targetMaximumTruePeakLevel = new juce::AudioParameterFloat({ "targetMaximumTruePeakLevel", 1 }, "Maximum True Peak", juce::NormalisableRange<float>(-50.0f, 6.0f, 1.0f), -1.0f));
+
 }
 
 KemomileMeterAudioProcessor::~KemomileMeterAudioProcessor()
@@ -94,12 +98,16 @@ void KemomileMeterAudioProcessor::prepareToPlay (double sampleRate, int samplesP
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
+    interpolatedBuffer.setSize(getTotalNumInputChannels(), samplesPerBlock * oversampling);
+
+    /*
     juce::dsp::ProcessSpec spec;
     spec.maximumBlockSize = samplesPerBlock;
     spec.numChannels = 1;
     spec.sampleRate = sampleRate;
     chainLeft.prepare(spec);
     chainRight.prepare(spec);
+    */
 }
 
 void KemomileMeterAudioProcessor::releaseResources()
@@ -107,6 +115,7 @@ void KemomileMeterAudioProcessor::releaseResources()
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
 }
+
 
 #ifndef JucePlugin_PreferredChannelConfigurations
 bool KemomileMeterAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
@@ -134,6 +143,7 @@ bool KemomileMeterAudioProcessor::isBusesLayoutSupported (const BusesLayout& lay
 }
 #endif
 
+
 void KemomileMeterAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
@@ -143,17 +153,37 @@ void KemomileMeterAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    //star from here:
-    float TruePeakValue = juce::Decibels::gainToDecibels(truePeakProcessor.process(buffer).getMax(), -INFINITY);
-    setLevelTruePeak(TruePeakValue);
-    /*
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
+    //star from here        >>>>>>>>>>>>>
+    
+    loudnessMeterProcessor.processBlock(buffer);
+    measurementPaused = loudnessMeterProcessor.getMomentaryLoudness() < -70;
+    if (!measurementPaused)
     {
-        auto* channelData = buffer.getWritePointer (channel);
-
-        // ..do something to the data...
+        integratedLoudness = loudnessMeterProcessor.getIntegratedLoudness();
     }
-    */
+    shortTermLoudness = loudnessMeterProcessor.getShortTermLoudness();
+    momentaryLoudness = loudnessMeterProcessor.getMomentaryLoudness();
+    maximumShortTermLoudness = loudnessMeterProcessor.getMaximumShortTermLoudness();
+    maximumMomentaryLoudness = loudnessMeterProcessor.getMaximumMomentaryLoudness();
+    loudnessRange = loudnessMeterProcessor.getLoudnessRange();
+    peakLevel = juce::Decibels::gainToDecibels(buffer.getMagnitude(0, buffer.getNumSamples()), -INFINITY);
+    maximumPeakLevel = peakLevel > maximumPeakLevel ? peakLevel : maximumPeakLevel;
+    truePeakLevel = juce::Decibels::gainToDecibels(truePeakProcessor.process(buffer).getMax(), -INFINITY);
+    maximumTruePeakLevel = truePeakLevel > maximumTruePeakLevel ? truePeakLevel : maximumTruePeakLevel;
+
+
+}
+
+void KemomileMeterAudioProcessor::resetIntegratedLoudness()
+{
+    loudnessMeterProcessor.reset();
+    integratedLoudness = -INFINITY;
+    maximumShortTermLoudness = -INFINITY;
+    maximumMomentaryLoudness = -INFINITY;
+    peakLevel = -INFINITY;
+    maximumPeakLevel = -INFINITY;
+    maximumTruePeakLevel = -INFINITY;
+    truePeakLevel = -INFINITY;
 }
 
 //==============================================================================
@@ -175,34 +205,34 @@ void KemomileMeterAudioProcessor::getStateInformation (juce::MemoryBlock& destDa
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
+    std::unique_ptr<juce::XmlElement> xml(new juce::XmlElement("LoudnessMeterParams"));
+    xml->setAttribute("targetIntegratedLoudness", (double)*targetIntegratedLoudness);
+    xml->setAttribute("targetMaximumShortTermLoudness", (double)*targetMaximumShortTermLoudness);
+    xml->setAttribute("targetMaximumTruePeakLevel,", (double)*targetMaximumTruePeakLevel);
+    copyXmlToBinary(*xml, destData);
 }
 
 void KemomileMeterAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
-}
+    std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
 
-float KemomileMeterAudioProcessor::getLevelTruePeak()
-{
-    return levelTruePeakValue;
-}
-
-void KemomileMeterAudioProcessor::setLevelTruePeak(float level)
-{
-    if (level > levelTruePeakValue)
+    if (xmlState.get() != nullptr)
     {
-        levelTruePeakValue = level;
+        if (xmlState->hasTagName("LoudnessMeterparams"))
+        {
+            *targetIntegratedLoudness = (float)xmlState->getDoubleAttribute("targetIntegratedLoudness", *targetIntegratedLoudness);
+            *targetMaximumShortTermLoudness = (float)xmlState->getDoubleAttribute("targetMaximumShortTermLoudness", *targetMaximumShortTermLoudness);
+            *targetMaximumTruePeakLevel = (float)xmlState->getDoubleAttribute("targetmaximumTruePeakLevel", *targetMaximumTruePeakLevel);
+        }
     }
-    else
-    {
-        //empty
-    }
+
 }
 
 
-
-//for apvts=====================================================================
+/*
+//for apvts      >>>>>>>>>>>>>>>>>
 MeterSettings getMeterSettings(juce::AudioProcessorValueTreeState& apvts)
 {
     MeterSettings settings;
@@ -231,6 +261,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout KemomileMeterAudioProcessor:
 
     return layout;
 }
+*/
+
 
 //==============================================================================
 // This creates new instances of the plugin..
