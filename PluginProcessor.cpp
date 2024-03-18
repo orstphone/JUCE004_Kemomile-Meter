@@ -153,23 +153,35 @@ void KemomileMeterAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    //star from here        >>>>>>>>>>>>>
+    //star from here        >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     
     loudnessMeterProcessor.processBlock(buffer);
     measurementPaused = loudnessMeterProcessor.getMomentaryLoudness() < -70;
+
     if (!measurementPaused)
-    {
         integratedLoudness = loudnessMeterProcessor.getIntegratedLoudness();
-    }
+    
     shortTermLoudness = loudnessMeterProcessor.getShortTermLoudness();
     momentaryLoudness = loudnessMeterProcessor.getMomentaryLoudness();
     maximumShortTermLoudness = loudnessMeterProcessor.getMaximumShortTermLoudness();
     maximumMomentaryLoudness = loudnessMeterProcessor.getMaximumMomentaryLoudness();
     loudnessRange = loudnessMeterProcessor.getLoudnessRange();
+
+
+
     peakLevel = juce::Decibels::gainToDecibels(buffer.getMagnitude(0, buffer.getNumSamples()), -INFINITY);
     maximumPeakLevel = peakLevel > maximumPeakLevel ? peakLevel : maximumPeakLevel;
+
     truePeakLevel = juce::Decibels::gainToDecibels(truePeakProcessor.process(buffer).getMax(), -INFINITY);
     maximumTruePeakLevel = truePeakLevel > maximumTruePeakLevel ? truePeakLevel : maximumTruePeakLevel;
+
+    //debugs
+  /*  DBG("shortTermLoudness = " + juce::String(shortTermLoudness));
+    DBG("momentaryLoudness = " + juce::String(momentaryLoudness));
+    DBG("loudnessRange = " + juce::String(loudnessRange));
+    DBG("peakLevel = " + juce::String(peakLevel));
+    DBG("truePeakLevel = " + juce::String(truePeakLevel));*/
+
 
 
 }

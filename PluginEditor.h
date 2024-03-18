@@ -13,6 +13,7 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include "Components/HorizontalBarMeter.h"
 //==============================================================================
 /**
 */
@@ -28,19 +29,19 @@ public:
     int _maximumTruePeakLevelPrecision = 1;
     bool extended;
 
-    void drawBarGraph(
+    void displayTextInfo(
         juce::Graphics& g,
         int x,
         int y,
         int w,
-        int minValue,
-        int maxValue,
+        int h,
         float level,
         float target,
         juce::String valueLabel,
         juce::String warningLabel,
         bool over);
 
+    //color swatches
     const juce::Colour black = juce::Colour(0xff000000);
     const juce::Colour white = juce::Colour(0xffffffff);
     const juce::Colour green = juce::Colour(0xff29c732);
@@ -49,8 +50,9 @@ public:
     const juce::Colour grey = juce::Colour(0xff575757);
     //==================//==================//==================//==================
 
-   void timerCallback() override;
+   void timerCallback() override; //will be called at the desired rate.
     void paint (juce::Graphics&) override;
+    void paintOverChildren(juce::Graphics&) override;
     void resized() override;
 
 
@@ -60,6 +62,17 @@ private:
     // access the processor object that created it.
     KemomileMeterAudioProcessor& audioProcessor;
 
+    //imageComponents for GUI displays
+    juce::ImageComponent imageComponentImageFacePlateBody;
+    juce::ImageComponent imageComponentImageFaceDisplayBody;
+    juce::ImageComponent imageComponentImageFaceGuardRail;
+    juce::ImageComponent imageComponentImageHorizontalStripDisplay;
+    juce::ImageComponent imageComponentImageGlassSheenReflection;
+    juce::ImageComponent imageComponentImageNumericPrintedValuesVu;
+
+
+
+    //
     juce::TextButton resetButton{ "reset" };
     juce::TextButton presetButton{ "Target" };
     juce::TextButton setButton{ "Set" };
@@ -72,6 +85,8 @@ private:
 
     juce::Slider maximumTruePeakLevelSlider;
     juce::SliderParameterAttachment maximumTruePeakLevelLoudnessSliderAttachment;
+
+    Gui::HorizontalBarMeter horizontalBarMeterL, horizontalBarMeterR;
 
 
 

@@ -21,8 +21,40 @@ KemomileMeterAudioProcessorEditor::KemomileMeterAudioProcessorEditor(KemomileMet
     // editor's size to whatever you need it to be.
     extended = false;
 
-    setSize (800, 460);
+    //setSize (800, 460);
+    setSize(1012, 230);
+    //load image assets
+    auto currentDirectory = juce::File::getCurrentWorkingDirectory();
+    auto imageFacePlateBody = juce::ImageFileFormat::loadFrom(currentDirectory.getChildFile(".../frame_body.png"));
+    auto imageFaceDisplayBody = juce::ImageFileFormat::loadFrom(currentDirectory.getChildFile("BlackFace.png"));
+    auto imageFaceGuardRail = juce::ImageFileFormat::loadFrom(currentDirectory.getChildFile("frame_guardrail.png"));
+    auto imageHorizontalStripDisplay = juce::ImageFileFormat::loadFrom(currentDirectory.getChildFile("frame_horizontalstrip.png"));
+    auto imageGlassSheenReflection = juce::ImageFileFormat::loadFrom(currentDirectory.getChildFile("glassSheen.png"));
+    auto imageNumericPrintedValuesVu = juce::ImageFileFormat::loadFrom(currentDirectory.getChildFile("NumericPrintedValuesVu.png"));
+
+
+    imageComponentImageFacePlateBody.setImage(imageFacePlateBody);
+    imageComponentImageFaceDisplayBody.setImage(imageFaceDisplayBody);
+    imageComponentImageFaceGuardRail.setImage(imageFaceGuardRail);
+    imageComponentImageHorizontalStripDisplay.setImage(imageHorizontalStripDisplay);
+    imageComponentImageGlassSheenReflection.setImage(imageGlassSheenReflection);
+    imageComponentImageNumericPrintedValuesVu.setImage(imageNumericPrintedValuesVu);
+
+    //addAndMakeVisible(&imageComponentImageFacePlateBody);
+    //addAndMakeVisible(&imageComponentImageFaceDisplayBody);
+    //addAndMakeVisible(&imageComponentImageFaceGuardRail);
+    //addAndMakeVisible(&imageComponentImageHorizontalStripDisplay);
+    //addAndMakeVisible(&imageComponentImageNumericPrintedValuesVu);
+
+
+    addAndMakeVisible(horizontalBarMeterL);
+    addAndMakeVisible(horizontalBarMeterR);
     
+
+    addAndMakeVisible(&imageComponentImageGlassSheenReflection); //last "crest" layer GUI wise
+
+    
+
     resetButton.onClick = [this]() {resetIntegratedLoudness(); };
     addAndMakeVisible(resetButton);
 
@@ -32,37 +64,40 @@ KemomileMeterAudioProcessorEditor::KemomileMeterAudioProcessorEditor(KemomileMet
     setButton.onClick = [this]() {hide(); };
     addAndMakeVisible(setButton);
 
-    startTimer(100);
-    addAndMakeVisible(integratedLoudnessSlider);
-    integratedLoudnessSlider.setTextValueSuffix(" LUFS");
-    integratedLoudnessSlider.setColour(juce::Slider::ColourIds::backgroundColourId, grey);
-    integratedLoudnessSlider.setColour(juce::Slider::ColourIds::thumbColourId, red);
-    integratedLoudnessSlider.setColour(juce::Slider::ColourIds::trackColourId, grey);
-    integratedLoudnessSlider.setColour(juce::Slider::ColourIds::textBoxTextColourId, grey);
-    integratedLoudnessSlider.setColour(juce::Slider::ColourIds::textBoxOutlineColourId, black);
-    integratedLoudnessSlider.setColour(juce::Slider::ColourIds::textBoxHighlightColourId, red);
-    integratedLoudnessSlider.setColour(juce::Slider::ColourIds::textBoxBackgroundColourId, black);
 
-    addAndMakeVisible(maximumShortTermLoudnessSlider);
-    maximumShortTermLoudnessSlider.setTextValueSuffix(" LUFS");
-    maximumShortTermLoudnessSlider.setColour(juce::Slider::ColourIds::backgroundColourId, grey);
-    maximumShortTermLoudnessSlider.setColour(juce::Slider::ColourIds::thumbColourId, red);
-    maximumShortTermLoudnessSlider.setColour(juce::Slider::ColourIds::trackColourId, grey);
-    maximumShortTermLoudnessSlider.setColour(juce::Slider::ColourIds::textBoxTextColourId, grey);
-    maximumShortTermLoudnessSlider.setColour(juce::Slider::ColourIds::textBoxOutlineColourId, black);
-    maximumShortTermLoudnessSlider.setColour(juce::Slider::ColourIds::textBoxHighlightColourId, red);
-    maximumShortTermLoudnessSlider.setColour(juce::Slider::ColourIds::textBoxBackgroundColourId, black);
+    //startTimer(100);
+    //addAndMakeVisible(integratedLoudnessSlider);
+    //integratedLoudnessSlider.setTextValueSuffix(" LUFS");
+    //integratedLoudnessSlider.setColour(juce::Slider::ColourIds::backgroundColourId, grey);
+    //integratedLoudnessSlider.setColour(juce::Slider::ColourIds::thumbColourId, red);
+    //integratedLoudnessSlider.setColour(juce::Slider::ColourIds::trackColourId, grey);
+    //integratedLoudnessSlider.setColour(juce::Slider::ColourIds::textBoxTextColourId, grey);
+    //integratedLoudnessSlider.setColour(juce::Slider::ColourIds::textBoxOutlineColourId, black);
+    //integratedLoudnessSlider.setColour(juce::Slider::ColourIds::textBoxHighlightColourId, red);
+    //integratedLoudnessSlider.setColour(juce::Slider::ColourIds::textBoxBackgroundColourId, black);
 
-    addAndMakeVisible(maximumTruePeakLevelSlider);
-    maximumTruePeakLevelSlider.setTextValueSuffix(" dB");
-    maximumTruePeakLevelSlider.setColour(juce::Slider::ColourIds::backgroundColourId, grey);
-    maximumTruePeakLevelSlider.setColour(juce::Slider::ColourIds::thumbColourId, red);
-    maximumTruePeakLevelSlider.setColour(juce::Slider::ColourIds::trackColourId, grey);
-    maximumTruePeakLevelSlider.setColour(juce::Slider::ColourIds::textBoxTextColourId, grey);
-    maximumTruePeakLevelSlider.setColour(juce::Slider::ColourIds::textBoxOutlineColourId, black);
-    maximumTruePeakLevelSlider.setColour(juce::Slider::ColourIds::textBoxHighlightColourId, red);
-    maximumTruePeakLevelSlider.setColour(juce::Slider::ColourIds::textBoxBackgroundColourId, black);
+    //addAndMakeVisible(maximumShortTermLoudnessSlider);
+    //maximumShortTermLoudnessSlider.setTextValueSuffix(" LUFS");
+    //maximumShortTermLoudnessSlider.setColour(juce::Slider::ColourIds::backgroundColourId, grey);
+    //maximumShortTermLoudnessSlider.setColour(juce::Slider::ColourIds::thumbColourId, red);
+    //maximumShortTermLoudnessSlider.setColour(juce::Slider::ColourIds::trackColourId, grey);
+    //maximumShortTermLoudnessSlider.setColour(juce::Slider::ColourIds::textBoxTextColourId, grey);
+    //maximumShortTermLoudnessSlider.setColour(juce::Slider::ColourIds::textBoxOutlineColourId, black);
+    //maximumShortTermLoudnessSlider.setColour(juce::Slider::ColourIds::textBoxHighlightColourId, red);
+    //maximumShortTermLoudnessSlider.setColour(juce::Slider::ColourIds::textBoxBackgroundColourId, black);
 
+    //addAndMakeVisible(maximumTruePeakLevelSlider);
+    //maximumTruePeakLevelSlider.setTextValueSuffix(" dB");
+    //maximumTruePeakLevelSlider.setColour(juce::Slider::ColourIds::backgroundColourId, grey);
+    //maximumTruePeakLevelSlider.setColour(juce::Slider::ColourIds::thumbColourId, red);
+    //maximumTruePeakLevelSlider.setColour(juce::Slider::ColourIds::trackColourId, grey);
+    //maximumTruePeakLevelSlider.setColour(juce::Slider::ColourIds::textBoxTextColourId, grey);
+    //maximumTruePeakLevelSlider.setColour(juce::Slider::ColourIds::textBoxOutlineColourId, black);
+    //maximumTruePeakLevelSlider.setColour(juce::Slider::ColourIds::textBoxHighlightColourId, red);
+    //maximumTruePeakLevelSlider.setColour(juce::Slider::ColourIds::textBoxBackgroundColourId, black);
+
+
+    startTimerHz(24);
 }
 
 
@@ -210,40 +245,22 @@ KemomileMeterAudioProcessorEditor::~KemomileMeterAudioProcessorEditor()
 //=====================================prettiest unicorn=========================================
 //=====================================prettiest unicorn=========================================
 
-void KemomileMeterAudioProcessorEditor::drawBarGraph(
+void KemomileMeterAudioProcessorEditor::displayTextInfo(
     juce::Graphics& g,
     int x,
     int y,
     int w,
-    int minValue,
-    int maxValue,
+    int h,
     float level,
     float target,
     juce::String valueLabel,
     juce::String warningLabel,
     bool over)
 {
-    g.setColour(level > -120 ? (over ? red : green) : grey);
+    auto colorLevelDependent = level > -120 ? (over ? juce::Colours::orange : juce::Colours::goldenrod) : juce::Colours::aliceblue;
+    g.setColour(colorLevelDependent);
     g.setFont(18);
-    g.drawFittedText(valueLabel, x, y, 110, 30, juce::Justification::right, 1);
-
-    g.setColour(grey);
-    g.drawRect(x + 120, y + 14, w - 120, 1);
-
-    if (target < maxValue)
-    {
-        int warning = (w - 120) + (w - 120) / (maxValue - minValue) * target - ((w - 120) / (maxValue - minValue) * maxValue); //normalizing
-        g.drawRect(x + 120 + warning, y, 1, 29);
-        g.setFont(12);
-        g.drawFittedText(warningLabel, x + 120 + warning - 40, y - 30, 80, 30, juce::Justification::centred, 1);
-    }
-
-    int amplitude = (w - 120) + (w - 120) / (maxValue - minValue) * level - ((w - 120) / (maxValue - minValue) * maxValue);
-    if (amplitude > 0)
-    {
-        g.setColour(over ? red : green);
-        g.fillRect(x + 120, y + 7, amplitude > (w - 120) ? (w - 120) : amplitude, 15);
-    }
+    g.drawFittedText(valueLabel, x, y, w, h, juce::Justification::right, 1);
 }
 
 //====================
@@ -254,10 +271,10 @@ void KemomileMeterAudioProcessorEditor::drawBarGraph(
 void KemomileMeterAudioProcessorEditor::paint (juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll(juce::Colours::black);
-    g.setColour(juce::Colours::white);
+    g.fillAll(juce::Colours::green);
+    g.setColour(juce::Colours::aliceblue);
     g.setFont(18);
-    g.drawFittedText("Loudness Meter Prototype", 60, 60, 400, 30, juce::Justification::left, 1);
+    g.drawFittedText("Kemomile Meter Prototype", 657, 174, 167, 23, juce::Justification::centred, 1);
 
     if (!extended) //is not resized
     {
@@ -267,7 +284,7 @@ void KemomileMeterAudioProcessorEditor::paint (juce::Graphics& g)
         juce::String integratedLoudnessText = juce::String::formatted(juce::String::formatted("%%.%df LUFS", _integratedLoudnessPrecision), audioProcessor.integratedLoudness);
         integratedLoudnessText = audioProcessor.integratedLoudness < -120 ? placeholder + " LUFS" : integratedLoudnessText;
 
-        drawBarGraph(g, 30, 130, 680, -50, -0.0f, audioProcessor.integratedLoudness, targetIntegratedLoudness,
+      /*  displayTextInfo(g, 30, 130, 680, -50, -0.0f, audioProcessor.integratedLoudness, targetIntegratedLoudness,
             integratedLoudnessText,
             juce::String::formatted("%.0f", targetIntegratedLoudness),
             juce::roundToInt(audioProcessor.integratedLoudness * pow(10, _integratedLoudnessPrecision)) > targetIntegratedLoudness * pow(10, _integratedLoudnessPrecision));
@@ -275,7 +292,7 @@ void KemomileMeterAudioProcessorEditor::paint (juce::Graphics& g)
         float targetMaximumShortTermLoudness = *audioProcessor.targetMaximumShortTermLoudness;
         juce::String maximumShortTermLoudnessText = juce::String::formatted(juce::String::formatted("%%.%f LUFS", _maximumShortTermLoudnessPrecision), audioProcessor.maximumShortTermLoudness);
         maximumShortTermLoudnessText = audioProcessor.maximumShortTermLoudness < -120 ? placeholder + " LUFS" : maximumShortTermLoudnessText;
-        drawBarGraph(g, 30, 200, 680, -50, -0.0f, audioProcessor.maximumShortTermLoudness, targetMaximumShortTermLoudness,
+        displayTextInfo(g, 30, 200, 680, -50, -0.0f, audioProcessor.maximumShortTermLoudness, targetMaximumShortTermLoudness,
             maximumShortTermLoudnessText,
             juce::String::formatted("%.0f", targetMaximumShortTermLoudness),
             juce::roundToInt(audioProcessor.maximumShortTermLoudness * pow(10, _maximumShortTermLoudnessPrecision)) > targetMaximumShortTermLoudness * pow(10, _maximumShortTermLoudnessPrecision));
@@ -283,9 +300,9 @@ void KemomileMeterAudioProcessorEditor::paint (juce::Graphics& g)
         float targetMaximumTruePeakLevel = *audioProcessor.targetMaximumTruePeakLevel;
         juce::String targetMaximumTruePeakLevelText = juce::String::formatted(juce::String::formatted("%%.%f dB", _maximumTruePeakLevelPrecision), audioProcessor.maximumTruePeakLevel);
         targetMaximumTruePeakLevelText = audioProcessor.maximumTruePeakLevel < -120 ? placeholder + " dB" : targetMaximumTruePeakLevelText;
-        drawBarGraph(g, 30, 270, 680, -50, +6.0f, audioProcessor.maximumTruePeakLevel, targetMaximumTruePeakLevel,
+        displayTextInfo(g, 30, 270, 680, -50, +6.0f, audioProcessor.maximumTruePeakLevel, targetMaximumTruePeakLevel,
             targetMaximumTruePeakLevelText, juce::String::formatted(juce::String::formatted("%%.%df dB", _maximumTruePeakLevelPrecision), targetMaximumTruePeakLevel),
-            juce::roundToInt(audioProcessor.maximumTruePeakLevel * pow(10, _maximumTruePeakLevelPrecision)) > targetMaximumTruePeakLevel * pow(10, _maximumTruePeakLevelPrecision));
+            juce::roundToInt(audioProcessor.maximumTruePeakLevel * pow(10, _maximumTruePeakLevelPrecision)) > targetMaximumTruePeakLevel * pow(10, _maximumTruePeakLevelPrecision));*/
     }
 
 
@@ -322,8 +339,15 @@ void KemomileMeterAudioProcessorEditor::paint (juce::Graphics& g)
     g.drawFittedText("_dev name goes here_", 60, getHeight() - 77, 400, 30, juce::Justification::left, 1);
 }
 
+void KemomileMeterAudioProcessorEditor::paintOverChildren(juce::Graphics& g)
+{
+    g.drawImage(imageFacePlateBody);
+}
+
 void KemomileMeterAudioProcessorEditor::timerCallback()
 {
+    horizontalBarMeterL.repaint();
+    horizontalBarMeterR.repaint();
     repaint();
 }
 
@@ -331,15 +355,26 @@ void KemomileMeterAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
-    resetButton.setAlpha(0.0f);
-    presetButton.setAlpha(0.0f);
-    setButton.setAlpha(0.0f);
 
-    resetButton.setBounds(510, 360, 200, 42);
-    presetButton.setBounds(300, 360, 200, 42);
-    setButton.setBounds(510, extended ? 360 : 10000, 200, 42);
+    imageComponentImageFacePlateBody.setBounds(0, 0, 1012, 230);
+    imageComponentImageFaceDisplayBody.setBounds(88, 0, 527, 230);
+    imageComponentImageFaceGuardRail.setBounds(10, 17, 33, 196);
+    imageComponentImageHorizontalStripDisplay.setBounds(657, 174, 167, 23);
+    imageComponentImageGlassSheenReflection.setBounds(137, 0, 186, 230);
+    imageComponentImageNumericPrintedValuesVu.setBounds(114, 105, 468, 21);
+    horizontalBarMeterL.setBounds(124, 87, 455, 8);
+    horizontalBarMeterR.setBounds(124, 135, 455, 8);
 
-    integratedLoudnessSlider.setBounds(180, extended ? 130 : 10000, 540, 30);
-    maximumShortTermLoudnessSlider.setBounds(180, extended ? 200 : 10000, 540, 30);
-    maximumTruePeakLevelSlider.setBounds(180, extended ? 270 : 10000, 540, 30);
+
+    //resetButton.setAlpha(0.0f);
+    //presetButton.setAlpha(0.0f);
+    //setButton.setAlpha(0.0f);
+
+    //resetButton.setBounds(510, 360, 200, 42);
+    //presetButton.setBounds(300, 360, 200, 42);
+    //setButton.setBounds(510, extended ? 360 : 10000, 200, 42);
+
+    //integratedLoudnessSlider.setBounds(180, extended ? 130 : 10000, 540, 30);
+    //maximumShortTermLoudnessSlider.setBounds(180, extended ? 200 : 10000, 540, 30);
+    //maximumTruePeakLevelSlider.setBounds(180, extended ? 270 : 10000, 540, 30);
 }
