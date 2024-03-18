@@ -568,7 +568,7 @@ void Ebu128LoudnessMeterProcessor::processBlock(juce::AudioSampleBuffer& buffer)
 
 
 
-float Ebu128LoudnessMeterProcessor::getMaximumShortTermLoudness() const
+float Ebu128LoudnessMeterProcessor::getShortTermLoudness() const
 {
     return shortTermLoudness;
 }

@@ -13,11 +13,11 @@
 
 //==============================================================================
 SecondOrderIIRFilter::SecondOrderIIRFilter(
-    double b0_at48k_ = 1.0,
-    double b1_at48k_ = 0.0,
-    double b2_at48k_ = 0.0,
-    double a1_at48k_ = 0.0,
-    double a2_at48k_ = 0.0)
+    double b0_at48k_,
+    double b1_at48k_,
+    double b2_at48k_,
+    double a1_at48k_,
+    double a2_at48k_)
     :
     b0{ b0_at48k_ },
     b1{ b1_at48k_ },

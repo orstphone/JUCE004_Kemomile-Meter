@@ -205,34 +205,36 @@ void KemomileMeterAudioProcessor::getStateInformation (juce::MemoryBlock& destDa
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
-    std::unique_ptr<juce::XmlElement> xml(new juce::XmlElement("LoudnessMeterParams"));
-    xml->setAttribute("targetIntegratedLoudness", (double)*targetIntegratedLoudness);
-    xml->setAttribute("targetMaximumShortTermLoudness", (double)*targetMaximumShortTermLoudness);
-    xml->setAttribute("targetMaximumTruePeakLevel,", (double)*targetMaximumTruePeakLevel);
-    copyXmlToBinary(*xml, destData);
+    // 
+    //std::unique_ptr<juce::XmlElement> xml(new juce::XmlElement("LoudnessMeterParams"));
+    //xml->setAttribute("targetIntegratedLoudness", (double)*targetIntegratedLoudness);
+    //xml->setAttribute("targetMaximumShortTermLoudness", (double)*targetMaximumShortTermLoudness);
+    //xml->setAttribute("targetMaximumTruePeakLevel,", (double)*targetMaximumTruePeakLevel);
+    //copyXmlToBinary(*xml, destData);
 }
 
 void KemomileMeterAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
-    std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
 
-    if (xmlState.get() != nullptr)
-    {
-        if (xmlState->hasTagName("LoudnessMeterparams"))
-        {
-            *targetIntegratedLoudness = (float)xmlState->getDoubleAttribute("targetIntegratedLoudness", *targetIntegratedLoudness);
-            *targetMaximumShortTermLoudness = (float)xmlState->getDoubleAttribute("targetMaximumShortTermLoudness", *targetMaximumShortTermLoudness);
-            *targetMaximumTruePeakLevel = (float)xmlState->getDoubleAttribute("targetmaximumTruePeakLevel", *targetMaximumTruePeakLevel);
-        }
-    }
+    //std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
+
+    //if (xmlState.get() != nullptr)
+    //{
+    //    if (xmlState->hasTagName("LoudnessMeterparams"))
+    //    {
+    //        *targetIntegratedLoudness = (float)xmlState->getDoubleAttribute("targetIntegratedLoudness", *targetIntegratedLoudness);
+    //        *targetMaximumShortTermLoudness = (float)xmlState->getDoubleAttribute("targetMaximumShortTermLoudness", *targetMaximumShortTermLoudness);
+    //        *targetMaximumTruePeakLevel = (float)xmlState->getDoubleAttribute("targetmaximumTruePeakLevel", *targetMaximumTruePeakLevel);
+    //    }
+    //}
 
 }
 
 
 /*
-//for apvts      >>>>>>>>>>>>>>>>>
+//for apvts         <================================================>>>>>>>>>>>>>>>>>
 MeterSettings getMeterSettings(juce::AudioProcessorValueTreeState& apvts)
 {
     MeterSettings settings;

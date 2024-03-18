@@ -34,7 +34,7 @@ struct MeterSettings
 
 
 
-MeterSettings getMeterSettings(juce::AudioProcessorValueTreeState& apvts);
+//MeterSettings getMeterSettings(juce::AudioProcessorValueTreeState& apvts);
 
 //==============================================================================
 /**
@@ -42,7 +42,6 @@ MeterSettings getMeterSettings(juce::AudioProcessorValueTreeState& apvts);
 class KemomileMeterAudioProcessor : public juce::AudioProcessor
 {
 public:
-    //==============================================================================
     KemomileMeterAudioProcessor();
     ~KemomileMeterAudioProcessor() override;
 

@@ -259,7 +259,7 @@ void KemomileMeterAudioProcessorEditor::paint (juce::Graphics& g)
     g.setFont(18);
     g.drawFittedText("This is a Loudness Meter", 60, 60, 400, 30, juce::Justification::left, 1);
 
-    if (!extended)
+    if (!extended) //is not resized
     {
         auto placeholder = juce::String::fromUTF8(u8"-\u221E");
 
@@ -271,13 +271,75 @@ void KemomileMeterAudioProcessorEditor::paint (juce::Graphics& g)
             integratedLoudnessText,
             juce::String::formatted("%.0f", targetIntegratedLoudness),
             juce::roundToInt(audioProcessor.integratedLoudness * pow(10, _integratedLoudnessPrecision)) > targetIntegratedLoudness * pow(10, _integratedLoudnessPrecision));
+    
+        float targetMaximumShortTermLoudness = *audioProcessor.targetMaximumShortTermLoudness;
+        juce::String maximumShortTermLoudnessText = juce::String::formatted(juce::String::formatted("%%.%f LUFS", _maximumShortTermLoudnessPrecision), audioProcessor.maximumShortTermLoudness);
+        maximumShortTermLoudnessText = audioProcessor.maximumShortTermLoudness < -120 ? placeholder + " LUFS" : maximumShortTermLoudnessText;
+        drawBarGraph(g, 30, 200, 680, -50, -0.0f, audioProcessor.maximumShortTermLoudness, targetMaximumShortTermLoudness,
+            maximumShortTermLoudnessText,
+            juce::String::formatted("$.0f", targetMaximumShortTermLoudness),
+            juce::roundToInt(audioProcessor.maximumShortTermLoudness * pow(10, _maximumShortTermLoudnessPrecision)) > targetMaximumShortTermLoudness * pow(10, _maximumShortTermLoudnessPrecision));
+
+        float targetMaximumTruePeakLevel = *audioProcessor.targetMaximumTruePeakLevel;
+        juce::String targetMaximumTruePeakLevelText = juce::String::formatted(juce::String::formatted("%%.%f LUFS", _maximumTruePeakLevelPrecision), audioProcessor.maximumTruePeakLevel);
+        targetMaximumTruePeakLevelText = audioProcessor.maximumTruePeakLevel < -120 ? placeholder + " LUFS" : targetMaximumTruePeakLevelText;
+        drawBarGraph(g, 30, 270, 680, -50, +6.0f, audioProcessor.maximumTruePeakLevel, targetMaximumTruePeakLevel,
+            targetMaximumTruePeakLevelText, juce::String::formatted(juce::String::formatted("%%.%df dB", _maximumTruePeakLevelPrecision), targetMaximumTruePeakLevel),
+            juce::roundToInt(audioProcessor.maximumTruePeakLevel * pow(10, _maximumTruePeakLevelPrecision)) > targetMaximumTruePeakLevel * pow(10, _maximumTruePeakLevelPrecision));
     }
 
+
+    g.setFont(12);
+
+    if (!extended)
+    {
+        g.setColour(yellow);
+        g.fillRect(510, 360, 200, 42);
+        g.setColour(black);
+        g.drawFittedText("Reset", 510, 360, 200, 42, juce::Justification::centred, 10);
+
+        g.setColour(grey);
+        g.fillRect(300, 360, 200, 42);
+        g.setColour(black);
+        g.drawFittedText("Target", 300, 360, 200, 42, juce::Justification::centred, 1);
+    }
+    else
+    {
+        g.setColour(red);
+        g.fillRect(510, 360, 200, 42);
+        g.setColour(black);
+        g.drawFittedText("Hide", 510, 360, 200, 42, juce::Justification::centred, 1);
+        
+        g.setFont(15);
+        g.setColour(grey);
+        g.drawFittedText("Integrated:", 650, 130, 120, 30, juce::Justification::left, 1);
+        g.drawFittedText("Maximum Short Term:", 60, 200, 120, 30, juce::Justification::left, 1);
+        g.drawFittedText("Maximum True Peak:", 60, 270, 120, 30, juce::Justification::left, 1);
+    }
+
+    g.setFont(12);
+    g.setColour(grey);
+    g.drawFittedText("Decca 2024", 60, getHeight() - 77, 400, 30, juce::Justification::left, 1);
+}
+
+void KemomileMeterAudioProcessorEditor::timerCallback()
+{
+    repaint();
 }
 
 void KemomileMeterAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
-    numericLabel.setBounds(100, 100, 200, 15);
+    resetButton.setAlpha(0.0f);
+    presetButton.setAlpha(0.0f);
+    setButton.setAlpha(0.0f);
+
+    resetButton.setBounds(510, 360, 200, 42);
+    presetButton.setBounds(300, 360, 200, 42);
+    setButton.setBounds(510, extended ? 360 : 10000, 200, 42);
+
+    integratedLoudnessSlider.setBounds(180, extended ? 130 : 10000, 540, 30);
+    maximumShortTermLoudnessSlider.setBounds(180, extended ? 200 : 10000, 540, 30);
+    maximumTruePeakLevelSlider.setBounds(180, extended ? 270 : 10000, 540, 30);
 }
