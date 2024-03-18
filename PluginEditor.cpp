@@ -141,7 +141,7 @@ void KemomileMeterAudioProcessorEditor::handlePreset(int choice)
         case 19: //None
             i = 0.0f; s = 0.0f; a = 6.0f;
             break;
-        case 20: //Custom
+        case 20: //Custom //will spawn custom GUI sliders for calibration.
             resetButton.setEnabled(false);
             presetButton.setEnabled(false);
             extended = true;
@@ -257,7 +257,7 @@ void KemomileMeterAudioProcessorEditor::paint (juce::Graphics& g)
     g.fillAll(juce::Colours::black);
     g.setColour(juce::Colours::white);
     g.setFont(18);
-    g.drawFittedText("This is a Loudness Meter", 60, 60, 400, 30, juce::Justification::left, 1);
+    g.drawFittedText("Loudness Meter Prototype", 60, 60, 400, 30, juce::Justification::left, 1);
 
     if (!extended) //is not resized
     {
@@ -277,12 +277,12 @@ void KemomileMeterAudioProcessorEditor::paint (juce::Graphics& g)
         maximumShortTermLoudnessText = audioProcessor.maximumShortTermLoudness < -120 ? placeholder + " LUFS" : maximumShortTermLoudnessText;
         drawBarGraph(g, 30, 200, 680, -50, -0.0f, audioProcessor.maximumShortTermLoudness, targetMaximumShortTermLoudness,
             maximumShortTermLoudnessText,
-            juce::String::formatted("$.0f", targetMaximumShortTermLoudness),
+            juce::String::formatted("%.0f", targetMaximumShortTermLoudness),
             juce::roundToInt(audioProcessor.maximumShortTermLoudness * pow(10, _maximumShortTermLoudnessPrecision)) > targetMaximumShortTermLoudness * pow(10, _maximumShortTermLoudnessPrecision));
 
         float targetMaximumTruePeakLevel = *audioProcessor.targetMaximumTruePeakLevel;
-        juce::String targetMaximumTruePeakLevelText = juce::String::formatted(juce::String::formatted("%%.%f LUFS", _maximumTruePeakLevelPrecision), audioProcessor.maximumTruePeakLevel);
-        targetMaximumTruePeakLevelText = audioProcessor.maximumTruePeakLevel < -120 ? placeholder + " LUFS" : targetMaximumTruePeakLevelText;
+        juce::String targetMaximumTruePeakLevelText = juce::String::formatted(juce::String::formatted("%%.%f dB", _maximumTruePeakLevelPrecision), audioProcessor.maximumTruePeakLevel);
+        targetMaximumTruePeakLevelText = audioProcessor.maximumTruePeakLevel < -120 ? placeholder + " dB" : targetMaximumTruePeakLevelText;
         drawBarGraph(g, 30, 270, 680, -50, +6.0f, audioProcessor.maximumTruePeakLevel, targetMaximumTruePeakLevel,
             targetMaximumTruePeakLevelText, juce::String::formatted(juce::String::formatted("%%.%df dB", _maximumTruePeakLevelPrecision), targetMaximumTruePeakLevel),
             juce::roundToInt(audioProcessor.maximumTruePeakLevel * pow(10, _maximumTruePeakLevelPrecision)) > targetMaximumTruePeakLevel * pow(10, _maximumTruePeakLevelPrecision));
@@ -319,7 +319,7 @@ void KemomileMeterAudioProcessorEditor::paint (juce::Graphics& g)
 
     g.setFont(12);
     g.setColour(grey);
-    g.drawFittedText("Decca 2024", 60, getHeight() - 77, 400, 30, juce::Justification::left, 1);
+    g.drawFittedText("_dev name goes here_", 60, getHeight() - 77, 400, 30, juce::Justification::left, 1);
 }
 
 void KemomileMeterAudioProcessorEditor::timerCallback()
