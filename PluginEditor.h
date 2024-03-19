@@ -14,10 +14,13 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 #include "Components/HorizontalBarMeter.h"
+#include "Components/FacePlateGui.h"
 //==============================================================================
 /**
 */
-class KemomileMeterAudioProcessorEditor : public juce::AudioProcessorEditor, public juce::Timer
+class KemomileMeterAudioProcessorEditor :
+    public juce::AudioProcessorEditor,
+    public juce::Timer
 {
 public:
     KemomileMeterAudioProcessorEditor (KemomileMeterAudioProcessor&);
@@ -61,30 +64,30 @@ private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     KemomileMeterAudioProcessor& audioProcessor;
-
+    Gui::FacePlateGui facePlateGui;
     //imageComponents for GUI displays
-    juce::ImageComponent imageComponentImageFacePlateBody;
-    juce::ImageComponent imageComponentImageFaceDisplayBody;
-    juce::ImageComponent imageComponentImageFaceGuardRail;
-    juce::ImageComponent imageComponentImageHorizontalStripDisplay;
-    juce::ImageComponent imageComponentImageGlassSheenReflection;
-    juce::ImageComponent imageComponentImageNumericPrintedValuesVu;
+    //juce::ImageComponent imageComponentImageFacePlateBody;
+    //juce::ImageComponent imageComponentImageFaceDisplayBody;
+    //juce::ImageComponent imageComponentImageFaceGuardRail;
+    //juce::ImageComponent imageComponentImageHorizontalStripDisplay;
+    //juce::ImageComponent imageComponentImageGlassSheenReflection;
+    //juce::ImageComponent imageComponentImageNumericPrintedValuesVu;
 
 
 
     //
-    juce::TextButton resetButton{ "reset" };
-    juce::TextButton presetButton{ "Target" };
-    juce::TextButton setButton{ "Set" };
+    //juce::TextButton resetButton{ "reset" };
+    //juce::TextButton presetButton{ "Target" };
+    //juce::TextButton setButton{ "Set" };
 
-    juce::Slider integratedLoudnessSlider;
-    juce::SliderParameterAttachment integratedLoudnessSliderAttachment;
+    //juce::Slider integratedLoudnessSlider;
+    //juce::SliderParameterAttachment integratedLoudnessSliderAttachment;
 
-    juce::Slider maximumShortTermLoudnessSlider;
-    juce::SliderParameterAttachment maximumShortTermLoudnessSliderAttachment;
+    //juce::Slider maximumShortTermLoudnessSlider;
+    //juce::SliderParameterAttachment maximumShortTermLoudnessSliderAttachment;
 
-    juce::Slider maximumTruePeakLevelSlider;
-    juce::SliderParameterAttachment maximumTruePeakLevelLoudnessSliderAttachment;
+    //juce::Slider maximumTruePeakLevelSlider;
+    //juce::SliderParameterAttachment maximumTruePeakLevelLoudnessSliderAttachment;
 
     Gui::HorizontalBarMeter horizontalBarMeterL, horizontalBarMeterR;
 

@@ -11,58 +11,50 @@
 
 //==============================================================================
 KemomileMeterAudioProcessorEditor::KemomileMeterAudioProcessorEditor(KemomileMeterAudioProcessor& p)
-    : AudioProcessorEditor(&p), audioProcessor(p),
-    integratedLoudnessSliderAttachment(*p.targetIntegratedLoudness, integratedLoudnessSlider),
+    : AudioProcessorEditor(&p), audioProcessor(p)
+  /*  integratedLoudnessSliderAttachment(*p.targetIntegratedLoudness, integratedLoudnessSlider),
     maximumShortTermLoudnessSliderAttachment(*p.targetMaximumShortTermLoudness, maximumShortTermLoudnessSlider),
-    maximumTruePeakLevelLoudnessSliderAttachment(*p.targetMaximumTruePeakLevel, maximumTruePeakLevelSlider)
+    maximumTruePeakLevelLoudnessSliderAttachment(*p.targetMaximumTruePeakLevel, maximumTruePeakLevelSlider)*/
 
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
     extended = false;
-
     //setSize (800, 460);
     setSize(1012, 230);
     //load image assets
-    auto currentDirectory = juce::File::getCurrentWorkingDirectory();
-    auto imageFacePlateBody = juce::ImageFileFormat::loadFrom(currentDirectory.getChildFile(".../frame_body.png"));
-    auto imageFaceDisplayBody = juce::ImageFileFormat::loadFrom(currentDirectory.getChildFile("BlackFace.png"));
-    auto imageFaceGuardRail = juce::ImageFileFormat::loadFrom(currentDirectory.getChildFile("frame_guardrail.png"));
-    auto imageHorizontalStripDisplay = juce::ImageFileFormat::loadFrom(currentDirectory.getChildFile("frame_horizontalstrip.png"));
-    auto imageGlassSheenReflection = juce::ImageFileFormat::loadFrom(currentDirectory.getChildFile("glassSheen.png"));
-    auto imageNumericPrintedValuesVu = juce::ImageFileFormat::loadFrom(currentDirectory.getChildFile("NumericPrintedValuesVu.png"));
+    facePlateGui.loadAssets();
+
+    //auto currentDirectory = juce::File::getCurrentWorkingDirectory();
 
 
-    imageComponentImageFacePlateBody.setImage(imageFacePlateBody);
+
+    
+
+   /* imageComponentImageFacePlateBody.setImage(imageFacePlateBody);
     imageComponentImageFaceDisplayBody.setImage(imageFaceDisplayBody);
     imageComponentImageFaceGuardRail.setImage(imageFaceGuardRail);
     imageComponentImageHorizontalStripDisplay.setImage(imageHorizontalStripDisplay);
     imageComponentImageGlassSheenReflection.setImage(imageGlassSheenReflection);
-    imageComponentImageNumericPrintedValuesVu.setImage(imageNumericPrintedValuesVu);
-
-    //addAndMakeVisible(&imageComponentImageFacePlateBody);
-    //addAndMakeVisible(&imageComponentImageFaceDisplayBody);
-    //addAndMakeVisible(&imageComponentImageFaceGuardRail);
-    //addAndMakeVisible(&imageComponentImageHorizontalStripDisplay);
-    //addAndMakeVisible(&imageComponentImageNumericPrintedValuesVu);
+    imageComponentImageNumericPrintedValuesVu.setImage(imageNumericPrintedValuesVu);*/
 
 
     addAndMakeVisible(horizontalBarMeterL);
     addAndMakeVisible(horizontalBarMeterR);
     
 
-    addAndMakeVisible(&imageComponentImageGlassSheenReflection); //last "crest" layer GUI wise
+    //addAndMakeVisible(&imageComponentImageGlassSheenReflection); //last "crest" layer GUI wise
 
     
 
-    resetButton.onClick = [this]() {resetIntegratedLoudness(); };
-    addAndMakeVisible(resetButton);
+    //resetButton.onClick = [this]() {resetIntegratedLoudness(); };
+    //addAndMakeVisible(resetButton);
 
-    presetButton.onClick = [this]() {ShowAndChoosePreset(); };
-    addAndMakeVisible(presetButton);
+    //presetButton.onClick = [this]() {ShowAndChoosePreset(); };
+    //addAndMakeVisible(presetButton);
 
-    setButton.onClick = [this]() {hide(); };
-    addAndMakeVisible(setButton);
+    //setButton.onClick = [this]() {hide(); };
+    //addAndMakeVisible(setButton);
 
 
     //startTimer(100);
@@ -177,13 +169,13 @@ void KemomileMeterAudioProcessorEditor::handlePreset(int choice)
             i = 0.0f; s = 0.0f; a = 6.0f;
             break;
         case 20: //Custom //will spawn custom GUI sliders for calibration.
-            resetButton.setEnabled(false);
+    /*        resetButton.setEnabled(false);
             presetButton.setEnabled(false);
             extended = true;
             integratedLoudnessSlider.setBounds(180, 130, 540, 30);
             maximumShortTermLoudnessSlider.setBounds(180, 200, 540, 30);
             maximumTruePeakLevelSlider.setBounds(180, 270, 540, 30);
-            setButton.setBounds(510, 360, 200, 42);
+            setButton.setBounds(510, 360, 200, 42);*/
             break;
         default:
             //Empty
@@ -224,12 +216,12 @@ void KemomileMeterAudioProcessorEditor::ShowAndChoosePreset()
 void KemomileMeterAudioProcessorEditor::hide()
 {
     extended = false;
-    resetButton.setEnabled(true);
-    presetButton.setEnabled(true);
-    integratedLoudnessSlider.setBounds(180, 10000, 540, 30);
-    maximumShortTermLoudnessSlider.setBounds(180, 10000, 540, 30);
-    maximumTruePeakLevelSlider.setBounds(180, 10000, 540, 30);
-    setButton.setBounds(510, 10000, 200, 42);
+    //resetButton.setEnabled(true);
+    //presetButton.setEnabled(true);
+    //integratedLoudnessSlider.setBounds(180, 10000, 540, 30);
+    //maximumShortTermLoudnessSlider.setBounds(180, 10000, 540, 30);
+    //maximumTruePeakLevelSlider.setBounds(180, 10000, 540, 30);
+    //setButton.setBounds(510, 10000, 200, 42);
 }
 
 
@@ -271,10 +263,34 @@ void KemomileMeterAudioProcessorEditor::displayTextInfo(
 void KemomileMeterAudioProcessorEditor::paint (juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
+
     g.fillAll(juce::Colours::green);
-    g.setColour(juce::Colours::aliceblue);
-    g.setFont(18);
-    g.drawFittedText("Kemomile Meter Prototype", 657, 174, 167, 23, juce::Justification::centred, 1);
+
+    g.drawImage(facePlateGui.getFaceplate(), 0, 0, getWidth(), getHeight(), 0, 0, facePlateGui.getFaceplate().getWidth(), facePlateGui.getFaceplate().getHeight());
+
+
+    // print ChannelOutput (LRMS) related GUIs
+    g.drawImage(facePlateGui.getChannelInfos(), 595, 84, 6, 61, 0, 0, facePlateGui.getChannelInfos().getWidth(), facePlateGui.getChannelInfos().getHeight());
+    // print metric related GUIs
+    g.drawImage(facePlateGui.getMetricsVu(), 114, 105, 468, 21, 0, 0, facePlateGui.getMetricsVu().getWidth(), facePlateGui.getMetricsVu().getHeight());
+    g.drawImage(facePlateGui.getIconVu(), 590, 106, 16, 19, 0, 0, facePlateGui.getIconVu().getWidth(), facePlateGui.getIconVu().getHeight());
+
+
+
+    //draw texts
+    juce::Font theGotoFont("Agency FB", 14, juce::Font::italic);
+    juce::Colour theGotoColor = juce::Colours::aqua;
+
+    g.setColour(theGotoColor);
+    g.setFont(theGotoFont);
+
+    juce::String samplerateInfoString = juce::String(juce::String(audioProcessor.getSampleRate()) + " Hz");
+    g.drawFittedText(samplerateInfoString, 657, 174, 150, 23, juce::Justification::centredRight, 1);
+
+
+
+
+
 
     if (!extended) //is not resized
     {
@@ -312,7 +328,7 @@ void KemomileMeterAudioProcessorEditor::paint (juce::Graphics& g)
     {
         g.setColour(yellow);
         g.fillRect(510, 360, 200, 42);
-        g.setColour(black);
+        g.setColour(juce::Colours::azure);
         g.drawFittedText("Reset", 510, 360, 200, 42, juce::Justification::centred, 10);
 
         g.setColour(grey);
@@ -334,21 +350,20 @@ void KemomileMeterAudioProcessorEditor::paint (juce::Graphics& g)
         g.drawFittedText("Maximum True Peak:", 60, 270, 120, 30, juce::Justification::left, 1);
     }
 
-    g.setFont(12);
-    g.setColour(grey);
-    g.drawFittedText("_dev name goes here_", 60, getHeight() - 77, 400, 30, juce::Justification::left, 1);
+    g.setFont(theGotoFont);
+    g.setColour(theGotoColor);
+    g.drawFittedText("@deccauvw 2024", 128,174, 400, 30, juce::Justification::left, 1);
 }
 
 void KemomileMeterAudioProcessorEditor::paintOverChildren(juce::Graphics& g)
 {
-    g.drawImage(imageFacePlateBody);
 }
 
 void KemomileMeterAudioProcessorEditor::timerCallback()
 {
     horizontalBarMeterL.repaint();
     horizontalBarMeterR.repaint();
-    repaint();
+    //repaint();
 }
 
 void KemomileMeterAudioProcessorEditor::resized()
@@ -356,12 +371,6 @@ void KemomileMeterAudioProcessorEditor::resized()
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
 
-    imageComponentImageFacePlateBody.setBounds(0, 0, 1012, 230);
-    imageComponentImageFaceDisplayBody.setBounds(88, 0, 527, 230);
-    imageComponentImageFaceGuardRail.setBounds(10, 17, 33, 196);
-    imageComponentImageHorizontalStripDisplay.setBounds(657, 174, 167, 23);
-    imageComponentImageGlassSheenReflection.setBounds(137, 0, 186, 230);
-    imageComponentImageNumericPrintedValuesVu.setBounds(114, 105, 468, 21);
     horizontalBarMeterL.setBounds(124, 87, 455, 8);
     horizontalBarMeterR.setBounds(124, 135, 455, 8);
 
