@@ -1,2 +1,2 @@
 # JUCE004-Kemomile-Meter
- Multi meter attempt
+ Very first usable practical VU meter attempts
