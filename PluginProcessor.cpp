@@ -168,12 +168,13 @@ void KemomileMeterAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     loudnessRange = loudnessMeterProcessor.getLoudnessRange();
 
 
-
     peakLevel = juce::Decibels::gainToDecibels(buffer.getMagnitude(0, buffer.getNumSamples()), -INFINITY);
-    maximumPeakLevel = peakLevel > maximumPeakLevel ? peakLevel : maximumPeakLevel;
 
-    truePeakLevel = juce::Decibels::gainToDecibels(truePeakProcessor.process(buffer).getMax(), -INFINITY);
-    maximumTruePeakLevel = truePeakLevel > maximumTruePeakLevel ? truePeakLevel : maximumTruePeakLevel;
+    
+    //maximumPeakLevel = peakLevel > maximumPeakLevel ? peakLevel : maximumPeakLevel;
+
+    //truePeakLevel = juce::Decibels::gainToDecibels(truePeakProcessor.process(buffer).getMax(), -INFINITY);
+    //maximumTruePeakLevel = truePeakLevel > maximumTruePeakLevel ? truePeakLevel : maximumTruePeakLevel;
 
     //debugs
   /*  DBG("shortTermLoudness = " + juce::String(shortTermLoudness));

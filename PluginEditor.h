@@ -65,6 +65,8 @@ private:
     // access the processor object that created it.
     KemomileMeterAudioProcessor& audioProcessor;
     Gui::FacePlateGui facePlateGui;
+    Gui::HorizontalBarMeter horizontalBarMeterL, horizontalBarMeterR;
+
     //imageComponents for GUI displays
     //juce::ImageComponent imageComponentImageFacePlateBody;
     //juce::ImageComponent imageComponentImageFaceDisplayBody;
@@ -89,7 +91,7 @@ private:
     //juce::Slider maximumTruePeakLevelSlider;
     //juce::SliderParameterAttachment maximumTruePeakLevelLoudnessSliderAttachment;
 
-    Gui::HorizontalBarMeter horizontalBarMeterL, horizontalBarMeterR;
+
 
 
 

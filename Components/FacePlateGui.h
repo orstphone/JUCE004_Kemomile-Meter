@@ -24,18 +24,19 @@ namespace Gui {
 
         void loadAssets();
 
-        void paint(juce::Graphics& g) override;
 
+        void paint(juce::Graphics& g) override;
         void paintOverChildren(juce::Graphics& g) override;
         void resized() override;
 
 
-        ///assets getters
+        ///assets getters     >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         juce::Image getFaceplate() const;
         juce::Image getChannelInfos() const;
-
         juce::Image getMetricsVu() const;
         juce::Image getIconVu() const;
+
+
 
     private:
         juce::Image imageFaceplateCanvas;

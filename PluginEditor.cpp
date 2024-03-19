@@ -25,27 +25,12 @@ KemomileMeterAudioProcessorEditor::KemomileMeterAudioProcessorEditor(KemomileMet
     //load image assets
     facePlateGui.loadAssets();
 
-    //auto currentDirectory = juce::File::getCurrentWorkingDirectory();
-
-
-
-    
-
-   /* imageComponentImageFacePlateBody.setImage(imageFacePlateBody);
-    imageComponentImageFaceDisplayBody.setImage(imageFaceDisplayBody);
-    imageComponentImageFaceGuardRail.setImage(imageFaceGuardRail);
-    imageComponentImageHorizontalStripDisplay.setImage(imageHorizontalStripDisplay);
-    imageComponentImageGlassSheenReflection.setImage(imageGlassSheenReflection);
-    imageComponentImageNumericPrintedValuesVu.setImage(imageNumericPrintedValuesVu);*/
-
 
     addAndMakeVisible(horizontalBarMeterL);
     addAndMakeVisible(horizontalBarMeterR);
-    
 
-    //addAndMakeVisible(&imageComponentImageGlassSheenReflection); //last "crest" layer GUI wise
 
-    
+
 
     //resetButton.onClick = [this]() {resetIntegratedLoudness(); };
     //addAndMakeVisible(resetButton);
@@ -280,13 +265,10 @@ void KemomileMeterAudioProcessorEditor::paint (juce::Graphics& g)
     //draw texts
     juce::Font theGotoFont("Agency FB", 14, juce::Font::italic);
     juce::Colour theGotoColor = juce::Colours::aqua;
-
     g.setColour(theGotoColor);
     g.setFont(theGotoFont);
-
     juce::String samplerateInfoString = juce::String(juce::String(audioProcessor.getSampleRate()) + " Hz");
     g.drawFittedText(samplerateInfoString, 657, 174, 150, 23, juce::Justification::centredRight, 1);
-
 
 
 
@@ -361,6 +343,9 @@ void KemomileMeterAudioProcessorEditor::paintOverChildren(juce::Graphics& g)
 
 void KemomileMeterAudioProcessorEditor::timerCallback()
 {
+    horizontalBarMeterL.setLevel(audioProcessor.peakLevel);
+    horizontalBarMeterR.setLevel(audioProcessor.peakLevel);
+
     horizontalBarMeterL.repaint();
     horizontalBarMeterR.repaint();
     //repaint();
