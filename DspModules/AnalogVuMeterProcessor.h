@@ -34,15 +34,15 @@ public:
     virtual void releaseResources();
 
     //renders the next block
-    void processBlock(juce::AudioSampleBuffer& buffer);
+    void processBlock(juce::AudioBuffer<float>& buffer);
 
     void reset();
 
-protected:
-    //essential coeffs and variables valid for a sample rate of 48000Hz
-    double capacitance = 22e-6;
+    juce::AudioBuffer<float> rectifiedBuffer;
 
 private:
+    double capacitance = 22e-6;
+    double resistance = 650;
     //filter params that are set in the constr. and used in prepareToPlay
     //for steady state equation
 
@@ -51,7 +51,7 @@ private:
     double sampleRate;
 
     //stores the prev. value of the variables
-    juce::HeapBlock<double> z1;
+    juce::HeapBlock<float> z1;
 
 
 };
