@@ -13,8 +13,9 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "DspModules/TruePeakProcessor.h"
-#include "DspModules/Ebu128LoudnessMeterProcessor.h"
+//#include "DspModules/TruePeakProcessor.h"
+//#include "DspModules/Ebu128LoudnessMeterProcessor.h"
+#include "DspModules/AnalogVuMeterProcessor.h"
 
 enum MeterType
 {
@@ -49,26 +50,33 @@ public:
     juce::WindowedSincInterpolator interpolator;
     juce::AudioBuffer<float> interpolatedBuffer;
 
-    Ebu128LoudnessMeterProcessor loudnessMeterProcessor;
-    AudioProcessing::TruePeak truePeakProcessor;
+    AnalogVuMeterProcessor analogVumeterProcessor;
 
-    juce::AudioParameterFloat* targetIntegratedLoudness;
-    juce::AudioParameterFloat* targetMaximumShortTermLoudness;
-    juce::AudioParameterFloat* targetMaximumTruePeakLevel;
+    juce::AudioParameterFloat* outputTrimGain;
+    juce::AudioParameterFloat* referenceLeveldBFS;
+    juce::AudioParameterFloat* targetLevelVU;
 
-    float integratedLoudness = -INFINITY;
-    float shortTermLoudness = -INFINITY;
-    float momentaryLoudness = -INFINITY;
-    float maximumShortTermLoudness = -INFINITY;
-    float maximumMomentaryLoudness = -INFINITY;
-    float loudnessRange = 0;
-    float peakLevel = -INFINITY;
-    float maximumPeakLevel = -INFINITY;
-    float truePeakLevel = -INFINITY;
-    float maximumTruePeakLevel = -INFINITY;
-    float levelTruePeakValue = -INFINITY;
+    vector<float> levelVuLeftArray;
+    vector<float> levelVuRightArray;
+    float levelVuLeft = -INFINITY;
+    float levelVuRight = -INFINITY;
+    float levelPeak = -INFINITY;
+
     bool measurementPaused = true;
-    const int oversampling = 2;
+    //const int oversampling = 2;
+
+    //float integratedLoudness = -INFINITY;
+    //float shortTermLoudness = -INFINITY;
+    //float momentaryLoudness = -INFINITY;
+    //float maximumShortTermLoudness = -INFINITY;
+    //float maximumMomentaryLoudness = -INFINITY;
+    //float loudnessRange = 0;
+    //float peakLevel = -INFINITY;
+    //float maximumPeakLevel = -INFINITY;
+    //float truePeakLevel = -INFINITY;
+    //float maximumTruePeakLevel = -INFINITY;
+    //float levelTruePeakValue = -INFINITY;
+
     void resetIntegratedLoudness();
 
     //==============================================================================
@@ -107,9 +115,11 @@ public:
     //juce::AudioProcessorValueTreeState apvts{ *this, nullptr, "Parameters", createParameterLayout() };
     //==============================================================================
 
+    vector<float> getStereoVuLevels(int channel);
 
 
 private:
+    juce::dsp::ProcessSpec spec;
     //==============================================================================
     
     /*

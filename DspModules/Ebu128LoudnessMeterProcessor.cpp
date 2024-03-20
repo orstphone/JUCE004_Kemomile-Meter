@@ -126,7 +126,7 @@ void Ebu128LoudnessMeterProcessor::prepareToPlay(
 
     DBG("expectedRequestRate = " + juce::String(expectedRequestRate));
 
-    //figure out how many b ins are needed.
+    //figure out how many bins are needed.
     const int timeOfAccumulationForShortTerm = 3; //sec
         //needed for the short term loudness measurement.
     

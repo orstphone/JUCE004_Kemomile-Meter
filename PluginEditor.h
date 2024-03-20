@@ -61,6 +61,7 @@ public:
 
 
 private:
+    const int guiUpdateRate = 60;
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     KemomileMeterAudioProcessor& audioProcessor;
@@ -96,9 +97,6 @@ private:
 
 
     void resetIntegratedLoudness();
-    void handlePreset(int choice);
-    void ShowAndChoosePreset();
-    void hide();
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (KemomileMeterAudioProcessorEditor)

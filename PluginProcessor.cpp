@@ -21,10 +21,13 @@ KemomileMeterAudioProcessor::KemomileMeterAudioProcessor()
                        )
 #endif
 {
-    addParameter(targetIntegratedLoudness = new juce::AudioParameterFloat({ "targetIntegratedLoudenss", 1 }, "Integrated", juce::NormalisableRange<float>(-50.0f, 0.0f, 1.0f), -23.0f));
-    addParameter(targetMaximumShortTermLoudness = new juce::AudioParameterFloat({ "targetMaximumShortTermLoudness", 1 }, "Maximum Short Term", juce::NormalisableRange<float>(-50.0f, 0.0f, 1.0f), -18.0f));
-    addParameter(targetMaximumTruePeakLevel = new juce::AudioParameterFloat({ "targetMaximumTruePeakLevel", 1 }, "Maximum True Peak", juce::NormalisableRange<float>(-50.0f, 6.0f, 1.0f), -1.0f));
-
+    addParameter(outputTrimGain = new juce::AudioParameterFloat({ "outputTrimGain", 1 }, "OutputTrim", juce::NormalisableRange<float>(-10.0f, 10.0f, 1.0f), 0.0f));
+    addParameter(referenceLeveldBFS = new juce::AudioParameterFloat({ "referenceLeveldBFS", 1 }, "Reference Level dBFS", juce::NormalisableRange<float>(-30.0f, 0.0f, 0.1f), -18.0f));
+    addParameter(targetLevelVU = new juce::AudioParameterFloat({ "targetLevelVU", 1 }, "Target VU Level", juce::NormalisableRange<float>(-10.0f, 1.0f, 0.1f), 0.0f));
+    spec.maximumBlockSize = 0;
+    spec.numChannels = 0;
+    spec.sampleRate = 0;
+    
 }
 
 KemomileMeterAudioProcessor::~KemomileMeterAudioProcessor()
@@ -98,16 +101,11 @@ void KemomileMeterAudioProcessor::prepareToPlay (double sampleRate, int samplesP
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
-    interpolatedBuffer.setSize(getTotalNumInputChannels(), samplesPerBlock * oversampling);
 
-    /*
-    juce::dsp::ProcessSpec spec;
     spec.maximumBlockSize = samplesPerBlock;
     spec.numChannels = 1;
     spec.sampleRate = sampleRate;
-    chainLeft.prepare(spec);
-    chainRight.prepare(spec);
-    */
+
 }
 
 void KemomileMeterAudioProcessor::releaseResources()
@@ -154,49 +152,34 @@ void KemomileMeterAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
         buffer.clear (i, 0, buffer.getNumSamples());
 
     //star from here        >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    analogVumeterProcessor.prepareToPlay(getSampleRate(), buffer.getNumSamples(), spec.maximumBlockSize);
+    analogVumeterProcessor.processBlock(buffer);
     
-    loudnessMeterProcessor.processBlock(buffer);
-    measurementPaused = loudnessMeterProcessor.getMomentaryLoudness() < -70;
+    DBG("vumeter processor block terminated.");
 
-    if (!measurementPaused)
-        integratedLoudness = loudnessMeterProcessor.getIntegratedLoudness();
-    
-    shortTermLoudness = loudnessMeterProcessor.getShortTermLoudness();
-    momentaryLoudness = loudnessMeterProcessor.getMomentaryLoudness();
-    maximumShortTermLoudness = loudnessMeterProcessor.getMaximumShortTermLoudness();
-    maximumMomentaryLoudness = loudnessMeterProcessor.getMaximumMomentaryLoudness();
-    loudnessRange = loudnessMeterProcessor.getLoudnessRange();
+    levelVuLeftArray = getStereoVuLevels(0);
+    levelVuRightArray = getStereoVuLevels(1);
 
+    DBG("levelVuLR value assigned.");
 
-    peakLevel = juce::Decibels::gainToDecibels(buffer.getMagnitude(0, buffer.getNumSamples()), -INFINITY);
+    levelPeak = juce::Decibels::gainToDecibels(buffer.getMagnitude(0, buffer.getNumSamples()), -INFINITY);
 
-    
-    //maximumPeakLevel = peakLevel > maximumPeakLevel ? peakLevel : maximumPeakLevel;
+    DBG("peak value assigned.");
 
-    //truePeakLevel = juce::Decibels::gainToDecibels(truePeakProcessor.process(buffer).getMax(), -INFINITY);
-    //maximumTruePeakLevel = truePeakLevel > maximumTruePeakLevel ? truePeakLevel : maximumTruePeakLevel;
-
+  
     //debugs
-  /*  DBG("shortTermLoudness = " + juce::String(shortTermLoudness));
-    DBG("momentaryLoudness = " + juce::String(momentaryLoudness));
-    DBG("loudnessRange = " + juce::String(loudnessRange));
-    DBG("peakLevel = " + juce::String(peakLevel));
-    DBG("truePeakLevel = " + juce::String(truePeakLevel));*/
-
+    DBG("levelVuLeft levelVuRight == " + juce::String(levelVuLeft)+ " : " + juce::String(levelVuRight));
+    DBG("peak                     == " + juce::String(levelPeak));
 
 
 }
 
 void KemomileMeterAudioProcessor::resetIntegratedLoudness()
 {
-    loudnessMeterProcessor.reset();
-    integratedLoudness = -INFINITY;
-    maximumShortTermLoudness = -INFINITY;
-    maximumMomentaryLoudness = -INFINITY;
-    peakLevel = -INFINITY;
-    maximumPeakLevel = -INFINITY;
-    maximumTruePeakLevel = -INFINITY;
-    truePeakLevel = -INFINITY;
+    analogVumeterProcessor.reset();
+    levelVuLeft = -INFINITY;
+    levelVuRight = -INFINITY;
+    levelPeak = -INFINITY;
 }
 
 //==============================================================================
@@ -208,6 +191,7 @@ bool KemomileMeterAudioProcessor::hasEditor() const
 juce::AudioProcessorEditor* KemomileMeterAudioProcessor::createEditor()
 {
     return new KemomileMeterAudioProcessorEditor (*this);
+
     //generic GUI
     //return new juce::GenericAudioProcessorEditor(*this);
 }
@@ -243,6 +227,11 @@ void KemomileMeterAudioProcessor::setStateInformation (const void* data, int siz
     //    }
     //}
 
+}
+
+vector<float> KemomileMeterAudioProcessor::getStereoVuLevels(int channel)
+{
+    return analogVumeterProcessor.getVuLevelForIndividualChannels(channel);
 }
 
 
