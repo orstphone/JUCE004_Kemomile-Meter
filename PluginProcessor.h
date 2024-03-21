@@ -81,6 +81,9 @@ public:
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
+    
+    //void setLatencySamples() override;
+
     void releaseResources() override;
 
    #ifndef JucePlugin_PreferredChannelConfigurations

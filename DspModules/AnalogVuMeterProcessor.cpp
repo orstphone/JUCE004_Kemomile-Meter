@@ -12,8 +12,78 @@
 #include "AnalogVuMeterProcessor.h"
 #include <cmath>
 //static member constants
-const float AnalogVuMeterProcessor::minimalReturnValue = static_cast<float>(std::pow(10, - 90));
+const float AnalogVuMeterProcessor::minimalReturnValue = static_cast<float>(std::pow(10, - 40));
 
+
+//////////////////////////////////Rectifier zone///////////////////////////////////
+//////////////////////////////////Rectifier zone///////////////////////////////////
+//////////////////////////////////Rectifier zone///////////////////////////////////
+//////////////////////////////////Rectifier zone///////////////////////////////////
+
+
+AnalogVuMeterRectifier::AnalogVuMeterRectifier() :
+    numberOfChannels{ 0 },
+    sampleRate{ 48000 }
+{
+    //determine the values if exists
+}
+
+AnalogVuMeterRectifier::~AnalogVuMeterRectifier()
+{
+}
+
+void AnalogVuMeterRectifier::prepareToPlay(double sampleRate, int numberOfChannels)
+{
+    DBG("prepareToPlay @ Rectifier called");
+    this->sampleRate = sampleRate;
+    this->numberOfChannels = numberOfChannels;
+
+    //init. z1 and z2
+    z1.calloc(numberOfChannels);
+
+    //determine the filter coeffs if E : there is none unless Tustin.
+
+
+}
+
+void AnalogVuMeterRectifier::releaseResources()
+{
+}
+
+void AnalogVuMeterRectifier::processBlock(juce::AudioBuffer<float>& buffer)
+{
+    rectifiedBuffer.setSize(buffer.getNumChannels(), buffer.getNumSamples());
+    rectifiedBuffer.clear();
+
+    const int numOfChannels = juce::jmin(numberOfChannels, buffer.getNumChannels());
+    for (int channel = 0; channel < numOfChannels; ++channel)
+    {
+        const float* samples = buffer.getReadPointer(channel);
+        float* outSamples = rectifiedBuffer.getWritePointer(channel);
+        for (int i = 0; i < buffer.getNumSamples(); ++i)
+        {
+            const float x_ = samples[i]; //input voltage v(t)
+            float absx_ = std::abs(x_); //rectified voltage v(t)
+
+            float i_c = (1.0 - 1.0 / resistance) * absx_ + (1.0 / (sampleRate * capacitance)) * z1[channel];
+
+
+            z1[channel] = x_;
+            outSamples[i] = i_c;
+            //DBG("raw value after Rect = " + juce::String(i_c));
+        }
+    }
+}
+
+void AnalogVuMeterRectifier::reset()
+{
+    z1.clear(numberOfChannels);
+}
+
+//////////////////////////////////VuMeterProcessorZone///////////////////////////////////
+//////////////////////////////////VuMeterProcessorZone///////////////////////////////////
+//////////////////////////////////VuMeterProcessorZone///////////////////////////////////
+//////////////////////////////////VuMeterProcessorZone///////////////////////////////////
 
 
 //==============================================================================
@@ -47,6 +117,7 @@ void AnalogVuMeterProcessor::prepareToPlay(double sampleRate, int numberOfInputC
 
 
     _buffer.setSize(numberOfInputChannels, estimatedSamplesPerBlock);
+    _buffer.clear();
     bufferRectifier.prepareToPlay(sampleRate, numberOfInputChannels);
 
     //for ssequation
@@ -56,16 +127,15 @@ void AnalogVuMeterProcessor::prepareToPlay(double sampleRate, int numberOfInputC
     x_3next.calloc(numberOfInputChannels);
 }
 
-void AnalogVuMeterProcessor::feedToSteadyStateEquation(juce::AudioBuffer<float>& buffer)
+void AnalogVuMeterProcessor::feedToSteadyStateEquation(juce::AudioBuffer<float>& _buffer) //_buffer == rectified one
 {
     //this will take rectified buffer "_buffer"
 
-    const int numberOfChannels = juce::jmin(buffer.getNumChannels(), static_cast<int>(spec.numChannels));
-    const int numberOfSamples = buffer.getNumSamples();
+    const int numberOfChannels = juce::jmin(_buffer.getNumChannels(), static_cast<int>(spec.numChannels));
+    const int numberOfSamples = _buffer.getNumSamples();
     const int sr = spec.sampleRate;
     const size_t sysDim = this->sysDim;
 
-    _buffer = buffer; //buffer for measurement.
     _memorybuffer.setSize(numberOfChannels, numberOfSamples + sysDim - 1);
     _memorybuffer.clear();
     _outputbuffer.setSize(numberOfChannels, numberOfSamples);
@@ -81,7 +151,7 @@ void AnalogVuMeterProcessor::feedToSteadyStateEquation(juce::AudioBuffer<float>&
         x_[2] = x_2next[channel];
         x_[3] = x_3next[channel]; //from previous iteration
 
-        for (int i = 0; i < _memorybuffer.getNumSamples(); ++i)
+        for (int i = 4; i < _memorybuffer.getNumSamples(); ++i)
         {
             float x_0 = x_[i];
             float x_1 = x_[i] - x_[i - 1];
@@ -108,13 +178,13 @@ void AnalogVuMeterProcessor::feedToSteadyStateEquation(juce::AudioBuffer<float>&
 
             y_[i] = float(ssmat_Y(0, 0)); //this is the "meter movement"
 
-            //DBG("raw value for VU = " + juce::String(y_[i]));
+            DBG("raw value for VU = " + juce::String(y_[i]));
             //_bufferLastValue.at(channel) = float(ssmat_Y(0, 0));
         }
     }
 }
 
-void AnalogVuMeterProcessor::processBlock(juce::AudioBuffer<float>& buffer)
+void AnalogVuMeterProcessor::processBlock(juce::AudioBuffer<float> buffer)
 {
 
 
@@ -137,7 +207,7 @@ void AnalogVuMeterProcessor::processBlock(juce::AudioBuffer<float>& buffer)
 
     //STEP 1:: rectify and damp the signal transient.
     bufferRectifier.processBlock(buffer);
-    _buffer = bufferRectifier.rectifiedBuffer;
+    _buffer = bufferRectifier.rectifiedBuffer; //_buffer is a rectified "buffer"
 
     //STEP 2:: set the number of channels to prevent EXC_BAD_ACCESS
     //when the number of channels in the buffer suddenly changes w/o calling
@@ -189,68 +259,3 @@ vector<float> AnalogVuMeterProcessor::getVuLevelForIndividualChannels(int channe
     return outputArr;
 }
 
-
-//////////////////////////////////Rectifier zone///////////////////////////////////
-//////////////////////////////////Rectifier zone///////////////////////////////////
-//////////////////////////////////Rectifier zone///////////////////////////////////
-//////////////////////////////////Rectifier zone///////////////////////////////////
-
-
-AnalogVuMeterRectifier::AnalogVuMeterRectifier() :
-    numberOfChannels{ 0 },
-    sampleRate{ 48000 }
-{
-    //determine the values if exists
-}
-
-AnalogVuMeterRectifier::~AnalogVuMeterRectifier()
-{
-}
-
-void AnalogVuMeterRectifier::prepareToPlay(double sampleRate, int numberOfChannels)
-{
-    DBG("prepareToPlay @ Rectifier called");
-    this->sampleRate = sampleRate;
-    this->numberOfChannels = numberOfChannels;
-
-    //init. z1 and z2
-    z1.calloc(numberOfChannels);
-
-    //determine the filter coeffs if E : there is none unless Tustin.
-
-
-}
-
-void AnalogVuMeterRectifier::releaseResources()
-{
-}
-
-void AnalogVuMeterRectifier::processBlock(juce::AudioBuffer<float>& buffer)
-{
-    rectifiedBuffer.setSize(buffer.getNumChannels(), buffer.getNumSamples());
-    rectifiedBuffer.clear();
-
-    const int numOfChannels = juce::jmin(numberOfChannels, buffer.getNumChannels());
-    for (int channel = 0; channel < numOfChannels; ++channel)
-    {
-        const float* samples = buffer.getReadPointer(channel);
-        float* outSamples = buffer.getWritePointer(channel);
-        for (int i = 0; i < buffer.getNumSamples(); ++i)
-        {
-            const float x_ = samples[i]; //input voltage v(t)
-            float absx_ = std::abs(x_); //rectified voltage v(t)
-
-            float i_c = (1.0 - 1.0 / resistance) * absx_ + (1.0 / (sampleRate * capacitance)) * z1[channel];
-
-
-            z1[channel] = x_;
-            outSamples[i] = i_c;
-            DBG("raw value after Rect = " + juce::String(i_c));
-        }
-    }
-}
-
-void AnalogVuMeterRectifier::reset()
-{
-    z1.clear(numberOfChannels);
-}

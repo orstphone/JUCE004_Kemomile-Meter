@@ -105,6 +105,7 @@ void KemomileMeterAudioProcessor::prepareToPlay (double sampleRate, int samplesP
     spec.maximumBlockSize = samplesPerBlock;
     spec.numChannels = 1;
     spec.sampleRate = sampleRate;
+    analogVumeterProcessor.prepareToPlay(sampleRate, samplesPerBlock, samplesPerBlock);
 
 }
 
@@ -152,7 +153,7 @@ void KemomileMeterAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
         buffer.clear (i, 0, buffer.getNumSamples());
 
     //star from here        >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    analogVumeterProcessor.prepareToPlay(getSampleRate(), buffer.getNumSamples(), spec.maximumBlockSize);
+    analogVumeterProcessor.prepareToPlay(getSampleRate(), buffer.getNumSamples(), buffer.getNumSamples());
     analogVumeterProcessor.processBlock(buffer);
     
     DBG("vumeter processor block terminated.");

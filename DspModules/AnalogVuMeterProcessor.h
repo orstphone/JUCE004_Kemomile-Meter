@@ -71,7 +71,7 @@ public:
     
     void feedToSteadyStateEquation(juce::AudioBuffer<float>& buffer);
 
-    void processBlock(juce::AudioBuffer<float>& buffer);
+    void processBlock(juce::AudioBuffer<float> buffer);
 
     vector<float> getVuLevelForIndividualChannels(int channel);
 
