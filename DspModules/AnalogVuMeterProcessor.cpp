@@ -240,7 +240,7 @@ void AnalogVuMeterRectifier::processBlock(juce::AudioBuffer<float>& buffer)
             const float x_ = samples[i]; //input voltage v(t)
             float absx_ = std::abs(x_); //rectified voltage v(t)
 
-            float i_c = (1 + 1.0 / resistance + 1.0 / sampleRate * capacitance) * absx_ - z1[channel];
+            float i_c = (1.0 - 1.0 / resistance) * absx_ + (1.0 / (sampleRate * capacitance)) * z1[channel];
 
 
             z1[channel] = x_;
