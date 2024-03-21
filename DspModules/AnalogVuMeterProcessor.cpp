@@ -151,7 +151,7 @@ void AnalogVuMeterProcessor::feedToSteadyStateEquation(juce::AudioBuffer<float>&
         x_[2] = x_2next[channel];
         x_[3] = x_3next[channel]; //from previous iteration
 
-        for (int i = 4; i < _memorybuffer.getNumSamples(); ++i)
+        for (int i = 0; i < _memorybuffer.getNumSamples(); ++i)
         {
             float x_0 = x_[i];
             float x_1 = x_[i] - x_[i - 1];
