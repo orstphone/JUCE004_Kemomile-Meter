@@ -127,6 +127,40 @@ void AnalogVuMeterProcessor::prepareToPlay(double sampleRate, int numberOfInputC
     x_3next.calloc(numberOfInputChannels);
 }
 
+template <typename T>
+vector<T> AnalogVuMeterProcessor::getNextState(const T* x, const T* u, double sampleRate)
+{
+    vector<T> x_next;
+
+    //calculate x_next = x + dx/dt * dt
+    //dt := 1/Ts
+    auto dt = (float)(1.0 / sampleRate);
+
+    for (size_t i = 0; i < sysDim; ++i)
+    {
+        float sum = 0.0;
+        for (size_t j = 0; j < sysDim; ++j)
+        {
+            sum += ssmatrixA(i, j) * x[j];
+        }
+        sum += ssmatrixB(i, 0) * u[0]; //add input contribution
+        x_next.push_back(x[i] + sum * dt);
+    }
+
+    return x_next;
+}
+
+template<typename T>
+T AnalogVuMeterProcessor::getOutput(const T* x)
+{
+    T y = 0;
+    for (size_t i = 0; i < sysDim; ++i)
+    {
+        y += ssmatrixC(0, i) * x[i];
+    }
+    return y;
+}
+
 void AnalogVuMeterProcessor::feedToSteadyStateEquation(juce::AudioBuffer<float>& _buffer) //_buffer == rectified one
 {
     //this will take rectified buffer "_buffer"
@@ -136,47 +170,30 @@ void AnalogVuMeterProcessor::feedToSteadyStateEquation(juce::AudioBuffer<float>&
     const int sr = spec.sampleRate;
     const size_t sysDim = this->sysDim;
 
-    _memorybuffer.setSize(numberOfChannels, numberOfSamples + sysDim - 1);
-    _memorybuffer.clear();
+    _statebuffer.setSize(numberOfChannels, numberOfSamples + sysDim - 1);
+    _statebuffer.clear();
     _outputbuffer.setSize(numberOfChannels, numberOfSamples);
     _outputbuffer.clear();
 
     for (int channel = 0; channel < numberOfChannels; ++channel)
     {
-        float* x_ = _memorybuffer.getWritePointer(channel); //memory for the operation
-        float* u_ = _buffer.getWritePointer(channel); //copy of the input audiobuffer
-        float* y_ = _outputbuffer.getWritePointer(channel);
-        x_[0] = x_0next[channel];
-        x_[1] = x_1next[channel];
-        x_[2] = x_2next[channel];
-        x_[3] = x_3next[channel]; //from previous iteration
+        float* x_ = _statebuffer.getWritePointer(channel); //initial state.
+        float* u_ = _buffer.getWritePointer(channel); //input sequence.
+        float* y_ = _outputbuffer.getWritePointer(channel); //output sequence.
+        double sr = spec.sampleRate;
 
-        for (int i = 0; i < _memorybuffer.getNumSamples(); ++i)
+
+        for (int i = 0; i < _buffer.getNumSamples(); ++i)
         {
-            float x_0 = x_[i];
-            float x_1 = x_[i] - x_[i - 1];
-            float x_2 = x_[i] - 2 * x_[i - 1] + x_[i - 2];
-            float x_3 = x_[i] - 3 * x_[i - 1] + 3 * x_[i - 2] - 1 * x_[i - 3];
-            //float x_4 = x_[i] - 4 * x_[i - 1] + 6 * x_[i - 2] - 4 * x_[i - 3] + x_[i - 4];
-            float elements_X[4] = { x_0, x_1, x_2, x_3 };
-            //float elementsdX[4] = { x_1, x_2, x_3, x_4 };
-            float elements_U[4] = { u_[i + sysDim]};
-            float elements_Y[4] = { 0 };
-            juce::dsp::Matrix<float> ssmat_X = juce::dsp::Matrix<float>(sysDim, 1, elements_X);
-            juce::dsp::Matrix<float> ssmat_Xnext = juce::dsp::Matrix<float>(sysDim, 1);
-            juce::dsp::Matrix<float> ssmat_U = juce::dsp::Matrix<float>(1, 1, elements_U);
-            juce::dsp::Matrix<float> ssmat_Y = juce::dsp::Matrix<float>(1, 1, elements_Y);
+            //calc next state -> vector<float>
+            vector<float> x_next = getNextState(x_, u_, sr);
+
+            float y = getOutput(x_);
 
             //matrix op
 
-            ssmat_Xnext = ssmatrixA * ssmat_X + ssmatrixB * ssmat_U; //4 elms will be stored in _memorybuffer
-            ssmat_Y = ssmatrixC * ssmat_X + ssmatrixD * ssmat_U; //output value
-            x_0next[channel] = ssmat_Xnext(0, 0);
-            x_1next[channel] = ssmat_Xnext(1, 0);
-            x_2next[channel] = ssmat_Xnext(2, 0);
-            x_3next[channel] = ssmat_Xnext(3, 0);
 
-            y_[i] = float(ssmat_Y(0, 0)); //this is the "meter movement"
+            y_[i] = float(y); //this is the "meter movement"
 
             DBG("raw value for VU = " + juce::String(y_[i]));
             //_bufferLastValue.at(channel) = float(ssmat_Y(0, 0));

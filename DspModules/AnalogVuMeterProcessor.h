@@ -69,6 +69,12 @@ public:
 
     void prepareToPlay(double  SampleRate, int numberOfInputChannels, int estimatedSamplesPerBlock);
     
+    template <typename T>
+    vector<T> getNextState(const T* x, const T* u, double sampleRate);
+
+    template <typename T>
+    T getOutput(const T* x);
+
     void feedToSteadyStateEquation(juce::AudioBuffer<float>& buffer);
 
     void processBlock(juce::AudioBuffer<float> buffer);
@@ -121,7 +127,7 @@ private:
     //int expectedRequestRate;
     AnalogVuMeterRectifier bufferRectifier;
     juce::AudioBuffer<float> _buffer;
-    juce::AudioBuffer<float> _memorybuffer;
+    juce::AudioBuffer<float> _statebuffer;
     juce::AudioBuffer<float> _outputbuffer;
     vector<float> vuLevelArrayLeft;
     vector<float> vuLevelArrayRight;
