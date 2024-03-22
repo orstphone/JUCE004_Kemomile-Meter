@@ -70,17 +70,17 @@ public:
 
     void prepareToPlay(double  SampleRate, int numberOfInputChannels, int estimatedSamplesPerBlock);
     
-    template <typename T>
-    void getNextState(const T* x, const T u, T* x_next, double sampleRate);
+ 
+    void getNextState(const float* x, const float u, float* x_next, double sampleRate);
 
-    template <typename T>
-    T getOutput(const T* x, const T u);
+
+    float getOutput(const float* x, const float u);
 
     void feedToSteadyStateEquation(juce::AudioBuffer<float>& buffer);
 
     void processBlock(juce::AudioBuffer<float> buffer);
 
-    float* get_Outputbuffer(int channel) const;
+    std::pair<float*, int> get_Outputbuffer(int channel) ;
 
     void reset();
 
@@ -133,7 +133,6 @@ private:
     float vuLevelArrayLeft;
     float vuLevelArrayRight;
 
-    int vuMeterWindowSize = 300;
     bool currentBlockIsSilent;
 
     static const float minimalReturnValue; // virtual -INF

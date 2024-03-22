@@ -118,12 +118,12 @@ public:
     //juce::AudioProcessorValueTreeState apvts{ *this, nullptr, "Parameters", createParameterLayout() };
     //==============================================================================
 
-    float getMonoVuLevels(int channel, int windowSize);
+    float getMonoVuLevels(int channel);
 
 
 private:
     juce::dsp::ProcessSpec spec;
-    AnalogVuMeterProcessor analogVuMeterProcsesor;
+    AnalogVuMeterProcessor analogVuMeterProcessor;
     //==============================================================================
     
     /*

@@ -61,21 +61,13 @@ public:
 
 
 private:
-    const int guiUpdateRate = 60;
+    const int guiUpdateRate = 24;
+    const int vuMeterWindowSize = 300; //ms
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     KemomileMeterAudioProcessor& audioProcessor;
     Gui::FacePlateGui facePlateGui;
     Gui::HorizontalBarMeter horizontalBarMeterL, horizontalBarMeterR;
-
-    //imageComponents for GUI displays
-    //juce::ImageComponent imageComponentImageFacePlateBody;
-    //juce::ImageComponent imageComponentImageFaceDisplayBody;
-    //juce::ImageComponent imageComponentImageFaceGuardRail;
-    //juce::ImageComponent imageComponentImageHorizontalStripDisplay;
-    //juce::ImageComponent imageComponentImageGlassSheenReflection;
-    //juce::ImageComponent imageComponentImageNumericPrintedValuesVu;
-
 
 
     //

@@ -8,7 +8,6 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h" 
-#include <map>
 //==============================================================================
 KemomileMeterAudioProcessor::KemomileMeterAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -222,32 +221,27 @@ void KemomileMeterAudioProcessor::setStateInformation (const void* data, int siz
 
 }
 
-float KemomileMeterAudioProcessor::getMonoVuLevels(int channel, int windowSize)
+float KemomileMeterAudioProcessor::getMonoVuLevels(int channel)
 {
 
     //DBG("getVuLevelForIndividualChannels. called");
     //windowsize == 300ms is the starting point
-    jassert(channel < spec.numChannels);
+    //jassert(channel < spec.numChannels);
 
-    float* vuValueArray = analogVuMeterProcessor.get_Outputbuffer(channel);
+    auto pairOfPtrAndSampleNumber = analogVuMeterProcessor.get_Outputbuffer(channel);
     
-    /*
-    samplerate = 1/48000 sec^-1 == Hz
-    windowsize - 300 e-3 sec
-    -> samplenum = sr * windowsize
-    */
-    int numberOfWindowSamples = static_cast<int>(spec.sampleRate * windowSize);
+    auto vuValueArray = pairOfPtrAndSampleNumber.first;
+    auto numberOfSamples = pairOfPtrAndSampleNumber.second;
 
+    float sum = 0.0;
+    for (size_t i = 0; i < numberOfSamples; ++i)
+    {
+        sum += vuValueArray[i];
+    }
 
-    //median value method
+    sum /= (float) numberOfSamples;
 
-    outputArr.copyFrom(channel, 0, _outputbuffer, _outputbuffer.getNumSamples());
-
-    //DBG("outputting buffer into float sequence done");
-
-    return outputArr;
-    
-
+    return sum;
 }
 
 

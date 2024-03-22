@@ -144,23 +144,15 @@ void KemomileMeterAudioProcessorEditor::paintOverChildren(juce::Graphics& g)
 
 void KemomileMeterAudioProcessorEditor::timerCallback()
 {
-    auto levelVuLeftArray = audioProcessor.levelVuLeftArray;
-    auto levelVuRightArray = audioProcessor.levelVuRightArray;
+    auto vuLevelLeft = audioProcessor.getMonoVuLevels(0);
+    auto vuLevelRight = audioProcessor.getMonoVuLevels(1);
     float levelPeak = audioProcessor.levelPeak;
 
     //try averaging the array
-    float primaryValueVuLeft = 0.0;
-    float primaryValueVuRight = 0.0;
-    int sizeOfLevelVuLeftArray = levelVuLeftArray.size();
-    int sizeOfLevelVuRightArray = levelVuRightArray.size();
-    int sizeOfArray = juce::jmin(sizeOfLevelVuLeftArray, sizeOfLevelVuRightArray);
 
 
-    primaryValueVuLeft = levelVuLeftArray.back();
-    primaryValueVuRight = levelVuRightArray.back();
-
-    horizontalBarMeterL.setLevel(primaryValueVuLeft);
-    horizontalBarMeterR.setLevel(primaryValueVuRight);
+    horizontalBarMeterL.setLevel(juce::Decibels::gainToDecibels(vuLevelLeft));
+    horizontalBarMeterR.setLevel(juce::Decibels::gainToDecibels(vuLevelRight));
 
     horizontalBarMeterL.repaint();
     horizontalBarMeterR.repaint();
