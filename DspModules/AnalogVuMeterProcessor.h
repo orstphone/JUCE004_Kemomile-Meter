@@ -71,10 +71,10 @@ public:
     void prepareToPlay(double  SampleRate, int numberOfInputChannels, int estimatedSamplesPerBlock);
     
  
-    void getNextState(const float* x, const float u, float* x_next, double sampleRate);
+    void getNextState(const juce::dsp::Matrix<float>& X, const float& u, juce::dsp::Matrix<float>& X_next, double sampleRate);
 
 
-    float getOutput(const float* x, const float u);
+    float getOutput(juce::dsp::Matrix<float>& X, const float u);
 
     void feedToSteadyStateEquation(juce::AudioBuffer<float>& buffer);
 
@@ -110,7 +110,8 @@ private:
     float elements_ssmD[1] = {
         0
     };
-
+    juce::dsp::Matrix<float> ssmatrixX = juce::dsp::Matrix<float>(sysDim, 1);
+    juce::dsp::Matrix<float> ssmatrixX_next = juce::dsp::Matrix<float>(sysDim, 1);
     juce::dsp::Matrix<float> ssmatrixA = juce::dsp::Matrix<float>(sysDim, sysDim, elements_ssmA);
     juce::dsp::Matrix<float> ssmatrixB = juce::dsp::Matrix<float>(sysDim, 1, elements_ssmB);
     juce::dsp::Matrix<float> ssmatrixC = juce::dsp::Matrix<float>(1, sysDim, elements_ssmC);
@@ -118,6 +119,8 @@ private:
     juce::HeapBlock<float> x_1next;
     juce::HeapBlock<float> x_2next;
     juce::HeapBlock<float> x_3next;
+    juce::HeapBlock<float> x_4next;
+
 
 
     //general stuff
