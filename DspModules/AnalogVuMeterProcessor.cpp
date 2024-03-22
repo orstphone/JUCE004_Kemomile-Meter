@@ -120,17 +120,16 @@ void AnalogVuMeterProcessor::prepareToPlay(double sampleRate, int numberOfInputC
     _buffer.clear();
     bufferRectifier.prepareToPlay(sampleRate, numberOfInputChannels);
 
-    //for ssequation
-    x_0next.calloc(numberOfInputChannels);
+    //for ss - equation
     x_1next.calloc(numberOfInputChannels);
     x_2next.calloc(numberOfInputChannels);
     x_3next.calloc(numberOfInputChannels);
 }
 
 template <typename T>
-vector<T> AnalogVuMeterProcessor::getNextState(const T* x, const T* u, double sampleRate)
-{
-    vector<T> x_next;
+void AnalogVuMeterProcessor::getNextState(const T* x, const T u, T* x_next,  double sampleRate) //perChannel
+{   
+    //single channel wise
 
     //calculate x_next = x + dx/dt * dt
     //dt := 1/Ts
@@ -143,29 +142,33 @@ vector<T> AnalogVuMeterProcessor::getNextState(const T* x, const T* u, double sa
         {
             sum += ssmatrixA(i, j) * x[j];
         }
-        sum += ssmatrixB(i, 0) * u[0]; //add input contribution
-        x_next.push_back(x[i] + sum * dt);
+
+        sum += ssmatrixB(i, 0) * u; //add input contribution
+        x_next[i] = (x[i] + sum * dt);
     }
 
-    return x_next;
+
 }
 
 template<typename T>
-T AnalogVuMeterProcessor::getOutput(const T* x)
+T AnalogVuMeterProcessor::getOutput(const T* x, const T u)
 {
-    T y = 0;
+    //single channel wise
+    T y = 0.0;
+
     for (size_t i = 0; i < sysDim; ++i)
     {
-        y += ssmatrixC(0, i) * x[i];
+        y += ssmatrixC(0, i) * x[i] + ssmatrixD(0, 0) * u;
     }
+
     return y;
 }
 
 void AnalogVuMeterProcessor::feedToSteadyStateEquation(juce::AudioBuffer<float>& _buffer) //_buffer == rectified one
 {
-    //this will take rectified buffer "_buffer"
+    //this must take rectified buffers "_buffer"
 
-    const int numberOfChannels = juce::jmin(_buffer.getNumChannels(), static_cast<int>(spec.numChannels));
+    const int numberOfChannels =_buffer.getNumChannels();
     const int numberOfSamples = _buffer.getNumSamples();
     const int sr = spec.sampleRate;
     const size_t sysDim = this->sysDim;
@@ -174,6 +177,10 @@ void AnalogVuMeterProcessor::feedToSteadyStateEquation(juce::AudioBuffer<float>&
     _statebuffer.clear();
     _outputbuffer.setSize(numberOfChannels, numberOfSamples);
     _outputbuffer.clear();
+    _statebufferNext.setSize(1, numberOfSamples + sysDim - 1);
+    _statebufferNext.clear();
+
+
 
     for (int channel = 0; channel < numberOfChannels; ++channel)
     {
@@ -182,23 +189,40 @@ void AnalogVuMeterProcessor::feedToSteadyStateEquation(juce::AudioBuffer<float>&
         float* y_ = _outputbuffer.getWritePointer(channel); //output sequence.
         double sr = spec.sampleRate;
 
+        //assign previous 3 values
+        x_[numberOfSamples - 1] = x_1next[channel];
+        x_[numberOfSamples - 2] = x_2next[channel];
+        x_[numberOfSamples - 3] = x_3next[channel];
 
-        for (int i = 0; i < _buffer.getNumSamples(); ++i)
+
+        //simulate the system
+        _statebufferNext.clear();
+        float* x_next = _statebufferNext.getWritePointer(0);
+
+        for (int i = 0; i < numberOfSamples + sysDim - 1; ++i)
         {
             //calc next state -> vector<float>
-            vector<float> x_next = getNextState(x_, u_, sr);
+            getNextState(x_, u_[i], x_next, sr); //is x_next audiobuffer or float? -> it's buffer == float*
 
-            float y = getOutput(x_);
-
-            //matrix op
-
+            float y = getOutput(x_, u_[i]);
 
             y_[i] = float(y); //this is the "meter movement"
 
-            DBG("raw value for VU = " + juce::String(y_[i]));
             //_bufferLastValue.at(channel) = float(ssmat_Y(0, 0));
         }
+
+
+        // remembering old 3 values before evaporating
+        x_1next[channel] = x_next[numberOfSamples - 1];
+        x_2next[channel] = x_next[numberOfSamples - 2];
+        x_3next[channel] = x_next[numberOfSamples - 3];
+
+
+        DBG("raw value for VU @ ch " + juce::String(channel) + " == " + juce::String(y_[0]));
     }
+
+    //_outputbuffer will be assigned from somewhewr.
+    //the buffer is declared in the header as private member.
 }
 
 void AnalogVuMeterProcessor::processBlock(juce::AudioBuffer<float> buffer)
@@ -237,15 +261,21 @@ void AnalogVuMeterProcessor::processBlock(juce::AudioBuffer<float> buffer)
     feedToSteadyStateEquation(_buffer);
 
     //STEP 4:: throw every data in _outputbuffer to the "Vu Meter"
-    vuLevelArrayLeft = getVuLevelForIndividualChannels(0);
-    vuLevelArrayRight = getVuLevelForIndividualChannels(1);
+    //from here _outputBuffer will handle "needlepoint" of the meter.
+
+
     //end of sequence
+}
+
+float* AnalogVuMeterProcessor::get_Outputbuffer(int channel) const
+{
+    float* out = _outputbuffer.getWritePointer(channel);
+    return out;
 }
 
 
 void AnalogVuMeterProcessor::reset()
 {
-    x_0next.clear(spec.numChannels);
     x_1next.clear(spec.numChannels);
     x_2next.clear(spec.numChannels);
     x_3next.clear(spec.numChannels);
@@ -256,23 +286,4 @@ void AnalogVuMeterProcessor::reset()
 //getters and setters========================================================================================
 //getters and setters========================================================================================
 //getters and setters========================================================================================
-vector<float> AnalogVuMeterProcessor::getVuLevelForIndividualChannels(int channel)
-{
-    //DBG("getVuLevelForIndividualChannels. called");
-    
-    vector<float> outputArr;
-    jassert(channel < spec.numChannels);
-
-    float* in = _outputbuffer.getWritePointer(channel);
-    for (int i = 0; i < _outputbuffer.getNumSamples(); i++)
-    {
-        float in_ = juce::jmax(in[i], minimalReturnValue);
-        in_ = juce::Decibels::gainToDecibels(in_);
-        outputArr.push_back(in_);
-    }
-
-    //DBG("outputting buffer into float sequence done");
-
-    return outputArr;
-}
 

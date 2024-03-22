@@ -43,6 +43,7 @@ public:
 private:
     double capacitance = 22e-6;
     double resistance = 650;
+    float outputManitudeCalibration = 1;
     //filter params that are set in the constr. and used in prepareToPlay
     //for steady state equation
 
@@ -70,16 +71,16 @@ public:
     void prepareToPlay(double  SampleRate, int numberOfInputChannels, int estimatedSamplesPerBlock);
     
     template <typename T>
-    vector<T> getNextState(const T* x, const T* u, double sampleRate);
+    void getNextState(const T* x, const T u, T* x_next, double sampleRate);
 
     template <typename T>
-    T getOutput(const T* x);
+    T getOutput(const T* x, const T u);
 
     void feedToSteadyStateEquation(juce::AudioBuffer<float>& buffer);
 
     void processBlock(juce::AudioBuffer<float> buffer);
 
-    vector<float> getVuLevelForIndividualChannels(int channel);
+    float* get_Outputbuffer(int channel) const;
 
     void reset();
 
@@ -91,7 +92,7 @@ private:
     float elements_ssmA[16] = {
         -19.84,      8.746,     -39.940,    -1232.0,
         169.6,       -100.0,      456.7,      14080.0,
-        26.16,          0.0,    -24.41,      -150.6 ,
+        26.18,          0.0,    -24.41,      -150.6 ,
         0.0,            0.0,        1.0,        0.0
     };
 
@@ -110,12 +111,10 @@ private:
         0
     };
 
-    juce::dsp::Matrix<float> ssmatrixY = juce::dsp::Matrix<float>(1, sysDim);
     juce::dsp::Matrix<float> ssmatrixA = juce::dsp::Matrix<float>(sysDim, sysDim, elements_ssmA);
     juce::dsp::Matrix<float> ssmatrixB = juce::dsp::Matrix<float>(sysDim, 1, elements_ssmB);
     juce::dsp::Matrix<float> ssmatrixC = juce::dsp::Matrix<float>(1, sysDim, elements_ssmC);
     juce::dsp::Matrix<float> ssmatrixD = juce::dsp::Matrix<float>(1, 1, elements_ssmD);
-    juce::HeapBlock<float> x_0next;
     juce::HeapBlock<float> x_1next;
     juce::HeapBlock<float> x_2next;
     juce::HeapBlock<float> x_3next;
@@ -128,10 +127,13 @@ private:
     AnalogVuMeterRectifier bufferRectifier;
     juce::AudioBuffer<float> _buffer;
     juce::AudioBuffer<float> _statebuffer;
+    juce::AudioBuffer<float> _statebufferNext;
     juce::AudioBuffer<float> _outputbuffer;
-    vector<float> vuLevelArrayLeft;
-    vector<float> vuLevelArrayRight;
 
+    float vuLevelArrayLeft;
+    float vuLevelArrayRight;
+
+    int vuMeterWindowSize = 300;
     bool currentBlockIsSilent;
 
     static const float minimalReturnValue; // virtual -INF

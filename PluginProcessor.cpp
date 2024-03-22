@@ -8,6 +8,7 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h" 
+#include <map>
 //==============================================================================
 KemomileMeterAudioProcessor::KemomileMeterAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -105,7 +106,7 @@ void KemomileMeterAudioProcessor::prepareToPlay (double sampleRate, int samplesP
     spec.maximumBlockSize = samplesPerBlock;
     spec.numChannels = 1;
     spec.sampleRate = sampleRate;
-    analogVumeterProcessor.prepareToPlay(sampleRate, samplesPerBlock, samplesPerBlock);
+    analogVuMeterProcessor.prepareToPlay(sampleRate, samplesPerBlock, samplesPerBlock);
 
 }
 
@@ -153,24 +154,15 @@ void KemomileMeterAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
         buffer.clear (i, 0, buffer.getNumSamples());
 
     //star from here        >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    analogVumeterProcessor.prepareToPlay(getSampleRate(), buffer.getNumSamples(), buffer.getNumSamples());
-    analogVumeterProcessor.processBlock(buffer);
+    analogVuMeterProcessor.prepareToPlay(getSampleRate(), buffer.getNumSamples(), buffer.getNumSamples());
+    analogVuMeterProcessor.processBlock(buffer);
     
-    DBG("vumeter processor block terminated.");
-
-    levelVuLeftArray = getStereoVuLevels(0);
-    levelVuRightArray = getStereoVuLevels(1);
-
-    DBG("levelVuLR value assigned.");
 
     levelPeak = juce::Decibels::gainToDecibels(buffer.getMagnitude(0, buffer.getNumSamples()), -INFINITY);
 
-    DBG("peak value assigned.");
 
-  
-    //debugs
-    DBG("levelVuLeft levelVuRight == " + juce::String(levelVuLeft)+ " : " + juce::String(levelVuRight));
-    DBG("peak                     == " + juce::String(levelPeak));
+    //DBG("levelVuLeft levelVuRight == " + juce::String(levelVuLeft)+ " : " + juce::String(levelVuRight));
+    //DBG("peak                     == " + juce::String(levelPeak));
 
 
 }
@@ -230,10 +222,34 @@ void KemomileMeterAudioProcessor::setStateInformation (const void* data, int siz
 
 }
 
-vector<float> KemomileMeterAudioProcessor::getStereoVuLevels(int channel)
+float KemomileMeterAudioProcessor::getMonoVuLevels(int channel, int windowSize)
 {
-    return analogVumeterProcessor.getVuLevelForIndividualChannels(channel);
+
+    //DBG("getVuLevelForIndividualChannels. called");
+    //windowsize == 300ms is the starting point
+    jassert(channel < spec.numChannels);
+
+    float* vuValueArray = analogVuMeterProcessor.get_Outputbuffer(channel);
+    
+    /*
+    samplerate = 1/48000 sec^-1 == Hz
+    windowsize - 300 e-3 sec
+    -> samplenum = sr * windowsize
+    */
+    int numberOfWindowSamples = static_cast<int>(spec.sampleRate * windowSize);
+
+
+    //median value method
+
+    outputArr.copyFrom(channel, 0, _outputbuffer, _outputbuffer.getNumSamples());
+
+    //DBG("outputting buffer into float sequence done");
+
+    return outputArr;
+    
+
 }
+
 
 
 /*
