@@ -13,16 +13,9 @@
 #define __ANALOG_VU_METER_PROCESSOR__
 #include <JuceHeader.h>
 #include <vector>
-//#include "juce_dsp\maths\juce_Matrix.h"
 
 
 using std::vector;
-//==============================================================================
-/*
-* 
-*/
-
-
 class AnalogVuMeterRectifier : public juce::Component
 {
 public:
@@ -41,18 +34,24 @@ public:
     juce::AudioBuffer<float> rectifiedBuffer;
 
 private:
+    juce::dsp::Convolution convolver;
+    juce::dsp::ProcessSpec spec;
+    juce::AudioBuffer<float> generateVuMeterIR(int numberOfChannels, int numberOfSamples);
+    juce::AudioBuffer<float> vuMeterImpulseResponseBuffer;
+
     double capacitance = 22e-6;
     double resistance = 650;
     float outputManitudeCalibration = 1;
+
+
     //filter params that are set in the constr. and used in prepareToPlay
     //for steady state equation
-
     //SR and audioChannelNums
     int numberOfChannels;
     double sampleRate;
 
     //stores the prev. value of the variables
-    juce::HeapBlock<float> z1;
+    juce::HeapBlock<float> z1; //will store last value
 
 
 };
