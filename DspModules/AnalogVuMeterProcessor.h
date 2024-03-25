@@ -13,6 +13,7 @@
 #define __ANALOG_VU_METER_PROCESSOR__
 #include <JuceHeader.h>
 #include <vector>
+#include "StateSpaceModelSimulation.h"
 //==============================================================================
 
 
@@ -26,12 +27,11 @@ public:
     void prepareToPlay(double  SampleRate, int numberOfInputChannels, int estimatedSamplesPerBlock); 
 
 
-    void getNextState(const juce::dsp::Matrix<float>& X, const float& u, juce::dsp::Matrix<float>& X_next, double sampleRate);
 
-    float getOutput(juce::dsp::Matrix<float>& X, const float u);
 
-    void feedToSteadyStateEquation(juce::AudioBuffer<float>& buffer);
-
+    using mat = juce::dsp::Matrix<float>;
+    void feedToSteadyStateEquation(juce::AudioBuffer<float>& buffer, mat& A, mat& B, mat& C, mat& D);
+ 
     void processBlock(juce::AudioBuffer<float> &buffer);
 
     void reset();
@@ -39,67 +39,86 @@ public:
     juce::AudioBuffer<float> getOutputBuffer();
 
 
-    void generateVuMeterIR(int numberOfChannels, int numberOfSamples);
-
-
 
 private:
-    //keeping og b
-
     //for rectifying
-    float capacitance;
-    float resistance;
-    float outputMagnitudeCalibration;
-    juce::dsp::Convolution convolver;
-    juce::dsp::ProcessSpec rectifierSpec;
-    juce::AudioBuffer<float> vuMeterImpulseResponseBuffer;
-
-
-    //state space equation matrices
     const size_t sysDim = 4;
-    float elements_ssmA[16] = {
+
+    //state space model simulation classes for stereo
+    StateSpaceModelSimulation ssms;
+    StateSpaceModelSimulation ssmsLeft_v2i;
+    StateSpaceModelSimulation ssmsRight_v2i;
+    StateSpaceModelSimulation ssmsLeft_i2a;
+    StateSpaceModelSimulation ssmsRight_i2a;
+
+
+    //state space equation matrices for VOLT -> CUR : System I
+    float v2i_A[16] = {
+        -10.0,     0.0,     0.0,    -10.0,
+        -9.671e+6,       -45.45,      -9.671e+6,      9.671,
+       -21.28,          0.0,    -21.28,      -2.128e-5,
+        -0.01,            0.0,        1.0,       -0.21
+    };
+
+    float v2i_B[4] = {
+        10.0,
+        9.671e+6,
+        21.28,
+        0.01
+    };
+
+    float v2i_C[4] = {
+        8.674e-19, - 8.674e-19,   8.078e-28, -1.654e-24
+    };
+
+    float v2i_D[1] = {
+        -8.674e-19
+    };
+
+    mat ssm_v2i_x;
+    mat ssm_v2i_A;
+    mat ssm_v2i_B;
+    mat ssm_v2i_C;
+    mat ssm_v2i_D;
+
+
+    //state space equation matrices for CUR -> ANGLE : system II
+    float i2a_A[16] = {
         -19.84,      8.746,     -39.940,    -1232.0,
         169.6,       -100.0,      456.7,      14080.0,
         26.18,          0.0,    -24.41,      -150.6 ,
         0.0,            0.0,        1.0,        0.0
     };
 
-    float elements_ssmB[4] = {
+    float i2a_B[4] = {
         0.2572,
         0,
         0,
         0
     };
 
-    float elements_ssmC[4] = {
+    float i2a_C[4] = {
         1.696, 0, 4.567, 140.8
     };
 
-    float elements_ssmD[1] = {
+    float i2a_D[1] = {
         0
     };
 
-    juce::dsp::Matrix<float> ssmatrixX = juce::dsp::Matrix<float>(sysDim, 1);
-    juce::dsp::Matrix<float> ssmatrixX_next = juce::dsp::Matrix<float>(sysDim, 1);
-    juce::dsp::Matrix<float> ssmatrixA = juce::dsp::Matrix<float>(sysDim, sysDim, elements_ssmA);
-    juce::dsp::Matrix<float> ssmatrixB = juce::dsp::Matrix<float>(sysDim, 1, elements_ssmB);
-    juce::dsp::Matrix<float> ssmatrixC = juce::dsp::Matrix<float>(1, sysDim, elements_ssmC);
-    juce::dsp::Matrix<float> ssmatrixD = juce::dsp::Matrix<float>(1, 1, elements_ssmD);
+    mat ssm_i2a_x;
+    mat ssm_i2a_A;
+    mat ssm_i2a_B;
+    mat ssm_i2a_C;
+    mat ssm_i2a_D;
     juce::HeapBlock<float> x_1next;
     juce::HeapBlock<float> x_2next;
     juce::HeapBlock<float> x_3next;
     juce::HeapBlock<float> x_4next;
 
 
-    //general stuff
+    //==============================================================================
 
     juce::dsp::ProcessSpec spec; //samplerate etc.
-    //int expectedRequestRate;
-    //juce::AudioBuffer<float> _buffer;
-    juce::AudioBuffer<float> _statebuffer;
-    juce::AudioBuffer<float> _statebufferNext;
-    juce::AudioBuffer<float> _outputbuffer;
-
     float vuLevelArrayLeft;
     float vuLevelArrayRight;
 

@@ -65,19 +65,6 @@ public:
     float levelPeak = -INFINITY;
 
     bool measurementPaused = true;
-    //const int oversampling = 2;
-
-    //float integratedLoudness = -INFINITY;
-    //float shortTermLoudness = -INFINITY;
-    //float momentaryLoudness = -INFINITY;
-    //float maximumShortTermLoudness = -INFINITY;
-    //float maximumMomentaryLoudness = -INFINITY;
-    //float loudnessRange = 0;
-    //float peakLevel = -INFINITY;
-    //float maximumPeakLevel = -INFINITY;
-    //float truePeakLevel = -INFINITY;
-    //float maximumTruePeakLevel = -INFINITY;
-    //float levelTruePeakValue = -INFINITY;
 
     void resetIntegratedLoudness();
 
