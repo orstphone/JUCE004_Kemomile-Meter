@@ -115,9 +115,6 @@ void KemomileMeterAudioProcessor::prepareToPlay (double sampleRate, int samplesP
     //filling arbitrary numbers
 
 
-    //generating IRs
-    analogVuMeterProcessor.generateVuMeterIR(this->numChannels, this->blockSize);
-    DBG("generated IR successfully");
 }
 
 void KemomileMeterAudioProcessor::releaseResources()

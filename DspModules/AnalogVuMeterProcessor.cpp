@@ -59,6 +59,34 @@ void AnalogVuMeterProcessor::prepareToPlay(double sampleRate, int numberOfInputC
     x_2next.calloc(numberOfInputChannels);
     x_3next.calloc(numberOfInputChannels);
     x_4next.calloc(numberOfInputChannels);
+
+
+    //generating IRs
+    generateVuMeterIR(numberOfInputChannels, estimatedSamplesPerBlock);
+    DBG("generated IR successfully");
+
+
+    convolver.loadImpulseResponse(
+        &vuMeterImpulseResponseBuffer,
+        sampleRate,
+        juce::dsp::Convolution::Stereo::yes,
+        juce::dsp::Convolution::Trim::no,
+        estimatedSamplesPerBlock, //"0" if to request the og IR size
+        juce::dsp::Convolution::Normalise::no);
+
+
+    DBG("Loaded IR");
+    DBG("VU IRBufferSize " + juce::String(vuMeterImpulseResponseBuffer.getNumSamples()));
+    DBG("VU IRCHannelSize " + juce::String(vuMeterImpulseResponseBuffer.getNumChannels()));
+    DBG("SR = " + juce::String(spec.sampleRate));
+    DBG("NC = " + juce::String(spec.numChannels));
+    DBG("BS = " + juce::String(spec.maximumBlockSize));
+
+
+    convolver.prepare(AnalogVuMeterProcessor::spec); //this is malfunctioning
+    DBG("Prepared Connv");
+
+
 }
 
 
@@ -206,31 +234,6 @@ void AnalogVuMeterProcessor::feedToSteadyStateEquation(juce::AudioBuffer<float>&
 
 void AnalogVuMeterProcessor::processBlock(juce::AudioBuffer<float>& buffer)
 {
-    auto sampleRate = spec.sampleRate;
-    auto numChannels = spec.numChannels;
-    auto blockSize = spec.maximumBlockSize;
-
-    //vuMeterImpulseResponseBuffer = generateVuMeterIR(numChannels, blockSize);
-
-    convolver.loadImpulseResponse(
-                                    &vuMeterImpulseResponseBuffer,
-                                    sampleRate,
-                                    juce::dsp::Convolution::Stereo::yes,
-                                    juce::dsp::Convolution::Trim::no,
-                                    blockSize, //"0" if to request the og IR size
-                                    juce::dsp::Convolution::Normalise::no);
-
-    DBG("Loaded IR");
-    DBG("VU IRBufferSize " + juce::String(vuMeterImpulseResponseBuffer.getNumSamples()));
-    DBG("VU IRCHannelSize " + juce::String(vuMeterImpulseResponseBuffer.getNumChannels()));
-    DBG("SR = " + juce::String(sampleRate));
-    DBG("NC = " + juce::String(numChannels));
-    DBG("BS = " + juce::String(blockSize));
-
-
-    convolver.prepare(spec); //this is malfunctioning
-    DBG("Prepared Connv");
-
 
     //hard rectifying
     for (size_t ch = 0; ch < rectifierSpec.numChannels; ++ch)
