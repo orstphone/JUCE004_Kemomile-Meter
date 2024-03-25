@@ -16,9 +16,7 @@
 #include "StateSpaceModelSimulation.h"
 //==============================================================================
 
-
-class AnalogVuMeterProcessor  :
-    public juce::Component
+class AnalogVuMeterProcessor  : public juce::Component
 {
 public:
     AnalogVuMeterProcessor();
@@ -26,11 +24,9 @@ public:
 
     void prepareToPlay(double  SampleRate, int numberOfInputChannels, int estimatedSamplesPerBlock); 
 
-
-
-
     using mat = juce::dsp::Matrix<float>;
-    void feedToSteadyStateEquation(juce::AudioBuffer<float>& buffer, mat& A, mat& B, mat& C, mat& D);
+
+    void feedToSteadyStateEquation(juce::AudioBuffer<float>& buffer, std::vector<StateSpaceModelSimulation>& ssmsVector);
  
     void processBlock(juce::AudioBuffer<float> &buffer);
 
@@ -39,17 +35,19 @@ public:
     juce::AudioBuffer<float> getOutputBuffer();
 
 
-
 private:
     //for rectifying
     const size_t sysDim = 4;
 
     //state space model simulation classes for stereo
     StateSpaceModelSimulation ssms;
-    StateSpaceModelSimulation ssmsLeft_v2i;
-    StateSpaceModelSimulation ssmsRight_v2i;
-    StateSpaceModelSimulation ssmsLeft_i2a;
-    StateSpaceModelSimulation ssmsRight_i2a;
+    std::vector<StateSpaceModelSimulation> ssmsVector_v2i; //for n-channels
+    std::vector<StateSpaceModelSimulation> ssmsVector_i2a; //for n-channels
+
+    //StateSpaceModelSimulation ssmsLeft_v2i;
+    //StateSpaceModelSimulation ssmsRight_v2i;
+    //StateSpaceModelSimulation ssmsLeft_i2a;
+    //StateSpaceModelSimulation ssmsRight_i2a;
 
 
     //state space equation matrices for VOLT -> CUR : System I
@@ -75,7 +73,7 @@ private:
         -8.674e-19
     };
 
-    mat ssm_v2i_x;
+    mat ssm_v2i_x, ssm_v2i_x0;
     mat ssm_v2i_A;
     mat ssm_v2i_B;
     mat ssm_v2i_C;
@@ -105,11 +103,12 @@ private:
         0
     };
 
-    mat ssm_i2a_x;
+    mat ssm_i2a_x, ssm_i2a_x0;
     mat ssm_i2a_A;
     mat ssm_i2a_B;
     mat ssm_i2a_C;
     mat ssm_i2a_D;
+
     juce::HeapBlock<float> x_1next;
     juce::HeapBlock<float> x_2next;
     juce::HeapBlock<float> x_3next;
@@ -118,6 +117,7 @@ private:
 
     //==============================================================================
 
+    juce::AudioBuffer<float> bufferForMeasurement;
     juce::dsp::ProcessSpec spec; //samplerate etc.
     float vuLevelArrayLeft;
     float vuLevelArrayRight;
