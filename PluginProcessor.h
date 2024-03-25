@@ -46,6 +46,8 @@ public:
     KemomileMeterAudioProcessor();
     ~KemomileMeterAudioProcessor() override;
 
+    bool currentBlockIsSilent; //gates signal silent than certain level
+    const float silenceThreshold = std::pow(10, 0.1 * -45); //gate level
 
     juce::WindowedSincInterpolator interpolator;
     juce::AudioBuffer<float> interpolatedBuffer;
@@ -56,8 +58,8 @@ public:
     juce::AudioParameterFloat* referenceLeveldBFS;
     juce::AudioParameterFloat* targetLevelVU;
 
-    vector<float> levelVuLeftArray;
-    vector<float> levelVuRightArray;
+    std::vector<float> levelVuLeftArray;
+    std::vector<float> levelVuRightArray;
     float levelVuLeft = -INFINITY;
     float levelVuRight = -INFINITY;
     float levelPeak = -INFINITY;
@@ -122,9 +124,13 @@ public:
 
 
 private:
-    juce::dsp::ProcessSpec spec;
+    //juce::dsp::ProcessSpec spec;
+    juce::AudioBuffer<float> _buffer; //buffer for measurement
+
+    double sampleRate;
+    int numChannels;
+    int blockSize;
     AnalogVuMeterProcessor analogVuMeterProcessor;
-    //==============================================================================
     
     /*
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();

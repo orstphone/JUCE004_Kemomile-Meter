@@ -11,24 +11,24 @@
 //==============================================================================
 KemomileMeterAudioProcessor::KemomileMeterAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
-     : AudioProcessor (BusesProperties()
-                     #if ! JucePlugin_IsMidiEffect
-                      #if ! JucePlugin_IsSynth
-                       .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
-                      #endif
-                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
-                     #endif
-                       )
+    : AudioProcessor(BusesProperties()
+#if ! JucePlugin_IsMidiEffect
+#if ! JucePlugin_IsSynth
+        .withInput("Input", juce::AudioChannelSet::stereo(), true)
+#endif
+        .withOutput("Output", juce::AudioChannelSet::stereo(), true)
+#endif
+    )
 #endif
 {
     addParameter(outputTrimGain = new juce::AudioParameterFloat({ "outputTrimGain", 1 }, "OutputTrim", juce::NormalisableRange<float>(-10.0f, 10.0f, 1.0f), 0.0f));
     addParameter(referenceLeveldBFS = new juce::AudioParameterFloat({ "referenceLeveldBFS", 1 }, "Reference Level dBFS", juce::NormalisableRange<float>(-30.0f, 0.0f, 0.1f), -18.0f));
     addParameter(targetLevelVU = new juce::AudioParameterFloat({ "targetLevelVU", 1 }, "Target VU Level", juce::NormalisableRange<float>(-10.0f, 1.0f, 0.1f), 0.0f));
-    spec.maximumBlockSize = 0;
-    spec.numChannels = 0;
-    spec.sampleRate = 0;
-    
+    sampleRate = 48000;//arbitrary
+    numChannels = 2; //arbitrary
+    blockSize = 1024; //arbitrary
 }
+
 
 KemomileMeterAudioProcessor::~KemomileMeterAudioProcessor()
 {
@@ -102,11 +102,22 @@ void KemomileMeterAudioProcessor::prepareToPlay (double sampleRate, int samplesP
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
 
-    spec.maximumBlockSize = samplesPerBlock;
-    spec.numChannels = 1;
-    spec.sampleRate = sampleRate;
-    analogVuMeterProcessor.prepareToPlay(sampleRate, samplesPerBlock, samplesPerBlock);
+    currentBlockIsSilent = false;
 
+    this->blockSize = samplesPerBlock;
+    this->numChannels = 2;
+    this->sampleRate = sampleRate;
+
+    DBG("input samplerate sr : " + juce::String(sampleRate));
+
+    this->analogVuMeterProcessor.prepareToPlay(sampleRate, numChannels, blockSize);
+    DBG("SSE prep done (first)");
+    //filling arbitrary numbers
+
+
+    //generating IRs
+    analogVuMeterProcessor.generateVuMeterIR(this->numChannels, this->blockSize);
+    DBG("generated IR successfully");
 }
 
 void KemomileMeterAudioProcessor::releaseResources()
@@ -148,17 +159,40 @@ void KemomileMeterAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
-
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    //star from here        >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    analogVuMeterProcessor.prepareToPlay(getSampleRate(), buffer.getNumSamples(), buffer.getNumSamples());
-    analogVuMeterProcessor.processBlock(buffer);
-    
+    //start from here        >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-    levelPeak = juce::Decibels::gainToDecibels(buffer.getMagnitude(0, buffer.getNumSamples()), -INFINITY);
+    _buffer = buffer; //copying buffer for measurement to _buffer. keeping the og buffer.
 
+    if (currentBlockIsSilent)
+    {
+        //if the block is silence
+   
+        const float magnitude = _buffer.getMagnitude(0, _buffer.getNumSamples());
+
+        if (magnitude < silenceThreshold)
+        {
+            currentBlockIsSilent = true;
+        }
+        else {
+            currentBlockIsSilent = false;
+        }
+    }
+
+
+    if (!currentBlockIsSilent) {
+
+        this->analogVuMeterProcessor.prepareToPlay(getSampleRate(), _buffer.getNumChannels(), _buffer.getNumSamples());
+        DBG("SSE prep done");
+
+        this->analogVuMeterProcessor.processBlock(_buffer);
+        DBG("SSE done");
+
+        levelPeak = juce::Decibels::gainToDecibels(_buffer.getMagnitude(0, _buffer.getNumSamples()), -INFINITY);
+
+    }
 
     //DBG("levelVuLeft levelVuRight == " + juce::String(levelVuLeft)+ " : " + juce::String(levelVuRight));
     //DBG("peak                     == " + juce::String(levelPeak));
@@ -228,15 +262,14 @@ float KemomileMeterAudioProcessor::getMonoVuLevels(int channel)
     //windowsize == 300ms is the starting point
     //jassert(channel < spec.numChannels);
 
-    auto pairOfPtrAndSampleNumber = analogVuMeterProcessor.get_Outputbuffer(channel);
-    
-    auto vuValueArray = pairOfPtrAndSampleNumber.first;
-    auto numberOfSamples = pairOfPtrAndSampleNumber.second;
+    auto needlePointBuffer = analogVuMeterProcessor.getOutputBuffer(); //take the needlepoint buffer
+    const float* needlePoints = needlePointBuffer.getReadPointer(channel);
+    const int numberOfSamples = needlePointBuffer.getNumSamples();
 
     float sum = 0.0;
     for (size_t i = 0; i < numberOfSamples; ++i)
     {
-        sum += vuValueArray[i];
+        sum += needlePoints[i];
     }
 
     sum /= (float) numberOfSamples;

@@ -107,31 +107,7 @@ void KemomileMeterAudioProcessorEditor::paint (juce::Graphics& g)
 
     g.setFont(12);
 
-    if (!extended)
-    {
-        g.setColour(yellow);
-        g.fillRect(510, 360, 200, 42);
-        g.setColour(juce::Colours::azure);
-        g.drawFittedText("Reset", 510, 360, 200, 42, juce::Justification::centred, 10);
 
-        g.setColour(grey);
-        g.fillRect(300, 360, 200, 42);
-        g.setColour(black);
-        g.drawFittedText("Target", 300, 360, 200, 42, juce::Justification::centred, 1);
-    }
-    else
-    {
-        g.setColour(red);
-        g.fillRect(510, 360, 200, 42);
-        g.setColour(black);
-        g.drawFittedText("Hide", 510, 360, 200, 42, juce::Justification::centred, 1);
-        
-        g.setFont(15);
-        g.setColour(grey);
-        g.drawFittedText("Integrated:", 650, 130, 120, 30, juce::Justification::left, 1);
-        g.drawFittedText("Maximum Short Term:", 60, 200, 120, 30, juce::Justification::left, 1);
-        g.drawFittedText("Maximum True Peak:", 60, 270, 120, 30, juce::Justification::left, 1);
-    }
 
     g.setFont(theGotoFont);
     g.setColour(theGotoColor);

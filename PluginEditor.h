@@ -44,13 +44,6 @@ public:
         juce::String warningLabel,
         bool over);
 
-    //color swatches
-    const juce::Colour black = juce::Colour(0xff000000);
-    const juce::Colour white = juce::Colour(0xffffffff);
-    const juce::Colour green = juce::Colour(0xff29c732);
-    const juce::Colour red = juce::Colour(0xfffc2125);
-    const juce::Colour yellow = juce::Colour(0xfffec309);
-    const juce::Colour grey = juce::Colour(0xff575757);
     //==================//==================//==================//==================
 
    void timerCallback() override; //will be called at the desired rate.
