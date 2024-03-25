@@ -62,29 +62,29 @@ void AnalogVuMeterProcessor::prepareToPlay(double sampleRate, int numberOfInputC
 
 
     //generating IRs
-    generateVuMeterIR(numberOfInputChannels, estimatedSamplesPerBlock);
-    DBG("generated IR successfully");
+    //generateVuMeterIR(numberOfInputChannels, estimatedSamplesPerBlock);
+    //DBG("generated IR successfully");
 
 
-    convolver.loadImpulseResponse(
-        &vuMeterImpulseResponseBuffer,
-        sampleRate,
-        juce::dsp::Convolution::Stereo::yes,
-        juce::dsp::Convolution::Trim::no,
-        estimatedSamplesPerBlock, //"0" if to request the og IR size
-        juce::dsp::Convolution::Normalise::no);
+    //convolver.loadImpulseResponse(
+    //    &vuMeterImpulseResponseBuffer,
+    //    sampleRate,
+    //    juce::dsp::Convolution::Stereo::yes,
+    //    juce::dsp::Convolution::Trim::no,
+    //    estimatedSamplesPerBlock, //"0" if to request the og IR size
+    //    juce::dsp::Convolution::Normalise::no);
 
 
-    DBG("Loaded IR");
-    DBG("VU IRBufferSize " + juce::String(vuMeterImpulseResponseBuffer.getNumSamples()));
-    DBG("VU IRCHannelSize " + juce::String(vuMeterImpulseResponseBuffer.getNumChannels()));
-    DBG("SR = " + juce::String(spec.sampleRate));
-    DBG("NC = " + juce::String(spec.numChannels));
-    DBG("BS = " + juce::String(spec.maximumBlockSize));
+    //DBG("Loaded IR");
+    //DBG("VU IRBufferSize " + juce::String(vuMeterImpulseResponseBuffer.getNumSamples()));
+    //DBG("VU IRCHannelSize " + juce::String(vuMeterImpulseResponseBuffer.getNumChannels()));
+    //DBG("SR = " + juce::String(spec.sampleRate));
+    //DBG("NC = " + juce::String(spec.numChannels));
+    //DBG("BS = " + juce::String(spec.maximumBlockSize));
 
 
-    convolver.prepare(AnalogVuMeterProcessor::spec); //this is malfunctioning
-    DBG("Prepared Connv");
+    //convolver.prepare(AnalogVuMeterProcessor::spec); //this is malfunctioning
+    DBG("Conv prep bypassed");
 
 
 }
@@ -236,7 +236,7 @@ void AnalogVuMeterProcessor::processBlock(juce::AudioBuffer<float>& buffer)
 {
 
     //hard rectifying
-    for (size_t ch = 0; ch < rectifierSpec.numChannels; ++ch)
+    for (size_t ch = 0; ch < buffer.getNumChannels(); ++ch)
     {
         float* samples = buffer.getWritePointer(ch);
 
@@ -247,14 +247,15 @@ void AnalogVuMeterProcessor::processBlock(juce::AudioBuffer<float>& buffer)
 
         DBG("1st raw value every block after Rect() == " + juce::String(samples[0]));
     }
+    DBG("rectifying done.");
 
 
     //convolution
-    juce::dsp::AudioBlock<float> block(buffer);
-    juce::dsp::ProcessContextReplacing<float> context(block);
-    convolver.process(context);
+    //juce::dsp::AudioBlock<float> block(buffer);
+    //juce::dsp::ProcessContextReplacing<float> context(block);
+    //convolver.process(context);
 
-    DBG("convolution done. applied to _buffer directly.");
+    DBG("convolution bypassed.");
 
 
     //STEP 2:: set the number of channels to prevent EXC_BAD_ACCESS
