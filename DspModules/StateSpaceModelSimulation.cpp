@@ -11,11 +11,12 @@
 #include <JuceHeader.h>
 #include "StateSpaceModelSimulation.h"
 
-//==============================================================================
+
 using mat = juce::dsp::Matrix<float>;
 
 
-StateSpaceModelSimulation::StateSpaceModelSimulation():
+StateSpaceModelSimulation::StateSpaceModelSimulation() :
+    numChannels(0),
     m(0),
     n(0),
     r(0),
@@ -24,110 +25,174 @@ StateSpaceModelSimulation::StateSpaceModelSimulation():
     B(1, 1),
     C(1, 1),
     D(1, 1),
-    x0(1, 1),
-    inputSequence(1, 1),
-    stateSequenceSimulated(1, 1),
-    outputSequenceSimulated(1, 1),
-    timeRowVector(1, 1)
+    timeRowVector(1, 1),
+    x_simulated(1, 1),
+    y_simulated(1, 1)
 {
     A.clear();
     B.clear();
     C.clear();
     D.clear();
     x0.clear();
-    inputSequence.clear();
-    stateSequenceSimulated.clear();
-    outputSequenceSimulated.clear();
     timeRowVector.clear();
+    x_simulated.clear();
+    y_simulated.clear();
+    y.resize(numChannels); //std::fill(y.begin(), y.end(), 0); //zeropad
 }
 
 StateSpaceModelSimulation::~StateSpaceModelSimulation()
 {
 }
 
-//stateSpaceModel for mono channel
-void StateSpaceModelSimulation::setCoefficients(mat A, mat B, mat C, mat D, mat initState, mat inputSequenceMatrix)
+//sets A B C D
+
+void StateSpaceModelSimulation::setInitStateVector(juce::AudioBuffer<float> &initialBuffer, int systemSize)
+{
+    //creates x0 where dim ~ [0:sysDim)
+    //transform initialBuffer to matices vector where v[ch] == corresponding data
+    jassert(initialBuffer.getNumSamples() == systemSize);
+
+    std::vector<mat> initialStateMatrixMultiChannel;
+    for (int channel = 0; channel < initialBuffer.getNumChannels(); ++channel)
+    {
+        mat singleInitChannelMatrix(systemSize, 1);
+        singleInitChannelMatrix.clear();
+        const float* in = initialBuffer.getReadPointer(channel);
+
+        for (int i = 0; i < initialBuffer.getNumSamples(); ++i)
+        {
+            singleInitChannelMatrix(i, 0) = in[i];
+        }
+        initialStateMatrixMultiChannel.push_back(singleInitChannelMatrix);
+    }
+
+    this->x0 = initialStateMatrixMultiChannel;
+}
+
+void StateSpaceModelSimulation::setInitStateVector(std::vector<mat> initialState, int systemSize)
+{
+    jassert(initialState.at(0).getNumRows() == systemSize);
+    this->x0 = initialState;
+}
+
+void StateSpaceModelSimulation::setInputSequence(juce::AudioBuffer<float>& buffer)
+{
+    //creates u[n]
+    //transform audioBuffer to float vectors vector where v[ch] == corresponding data
+    std::vector<std::vector<float>> inputSequenceMultiChannel;
+
+    for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
+    {
+        std::vector<float> singleChannelArray;
+        const float* in = buffer.getReadPointer(channel);
+
+        for (int i = 0; i < buffer.getNumSamples(); ++i)
+        {
+            singleChannelArray.push_back(in[i]);
+        }
+        inputSequenceMultiChannel.push_back(singleChannelArray);
+    }
+
+    this->u = inputSequenceMultiChannel;
+}
+
+void StateSpaceModelSimulation::setInputSequence(std::vector<std::vector<float>> inputSequence)
+{
+    //jassert(inputSequence.at(0).size() == this->u.at(0).size());
+    this->u = inputSequence;
+}
+
+void StateSpaceModelSimulation::hardReset(mat A, mat B, mat C, mat D,
+    juce::AudioBuffer<float>& buffer, juce::AudioBuffer<float>& initialBuffer, int systemSize)
 {
     this->A = A;
     this->B = B;
     this->C = C;
     this->D = D;
-    this->x0 = initState;
-    this->inputSequence = inputSequenceMatrix;
 
-    n = A.getNumRows();
+    setInitStateVector(initialBuffer, systemSize); //sets x0
+    setInputSequence(buffer); //sets u
+    
+
+    n = A.getNumRows(); 
     m = B.getNumColumns();
     r = C.getNumRows();
-    timeSamples = inputSequenceMatrix.getNumColumns();
 
-    auto outputSequenceSimulated = mat(r, timeSamples); outputSequenceSimulated.clear();
-    auto stateSequenceSimulated = mat(n, timeSamples); stateSequenceSimulated.clear();
-    auto timeRowVector = mat(1, timeSamples);
-    //[1 , t] array
+    jassert(n == systemSize);
+
+    timeSamples = buffer.getNumSamples();
+
+    this->y_simulated = mat(r, timeSamples); this->y_simulated.clear();
+    this->x_simulated = mat(n, timeSamples); this->x_simulated.clear();
+
+    this->timeRowVector = mat(1, timeSamples);  //[1 , t] array
     for (int t = 0; t < timeSamples; t++)
     {
         timeRowVector(0, t) = t + 1;
     }
 }
 
-void StateSpaceModelSimulation::setInputSequence(mat initState, mat inputSequenceMatrix)
-{
-    this->inputSequence = inputSequenceMatrix;
-    this->x0 = initState;
-}
 
-
-void StateSpaceModelSimulation::runSimulation()
+//stateSpaceModel for mono channel
+void StateSpaceModelSimulation::runSimulation(int channel)
 {
-    for (int j = 0; j < timeSamples; j++)
+    std::vector<float> y_monoChannel;
+
+    for (int j = 0; j < timeSamples; j++) //j is the "time" index.
     {
-        auto nRow = stateSequenceSimulated.getNumColumns();
+        auto nRow = y_simulated.getNumColumns(); //systemSize
 
         if (j == 0)
         {
-            //StateSequenceSimulated.col(j) = x0;
-            //.col(j) = C * x0;
-            for (int row = 0; row < nRow; row++)
+            for (int row = 0; row < nRow; row++) //essentially when u = 0
             {
-                stateSequenceSimulated(row, j) = x0(row, j);
-                outputSequenceSimulated(row, j) = (C * x0)(row, j);
+                auto _x0 = x0.at(channel);
+                x_simulated(row, j) = _x0(row, j);
+                y_simulated(row, j) = (C * _x0)(row, j);
+                y_monoChannel.push_back(y_simulated(row, j));
             }
         }
-
         else
         {
-            //simulatedOutputSequence.col(j) = A * simulatedStateSequence.col(j - 1) + B * inputSequence.col(j - 1);
-            //simulatedOutputSequence.col(j) = C * simulatedStateSequence.col(j);
             for (int row = 0; row < nRow; row++)
             {
-                stateSequenceSimulated(row, j) = (A * stateSequenceSimulated(row, j - 1) + B * inputSequence(row, j - 1))(row, j);
-                outputSequenceSimulated(row, j) = (C * stateSequenceSimulated(row, j))(row, j);
+                x_simulated(row, j) = (A * x_simulated + B * u.at(channel).at(j))(row, j);
+                y_simulated(row, j) = (C * x_simulated + D * u.at(channel).at(j))(row, j);
+                y_monoChannel.push_back(y_simulated(row, j));
             }
-            
         }
+
+
     }
+    y.at(channel).push_back(y_monoChannel);
 }
 
-std::vector<mat> StateSpaceModelSimulation::convertBufferTo1dMatrix(juce::AudioBuffer<float>& buffer)
+mat StateSpaceModelSimulation::getOutputVectorVector()
 {
-    std::vector<mat> matrices;
+    return y_simulated;
+}
+
+std::vector<std::vector<float>> StateSpaceModelSimulation::convertBufferToVector(juce::AudioBuffer<float>& buffer)
+{
+    std::vector<std::vector<float>> multipleChannelVectors; //n-channel vector<float> arrays
     auto numSamples = buffer.getNumSamples();
     auto numChannels = buffer.getNumChannels();
     
     for (int ch = 0; ch < numChannels; ++ch)
     {
-        mat singleChannelMatrix = mat(numSamples, 1);
+        std::vector<float> singleChannelVector;
         const float* in = buffer.getReadPointer(ch);
 
         for (int i = 0; i < numSamples; i++)
         {
-            singleChannelMatrix(i, 0) = in[i];
+            singleChannelVector.push_back(in[i]);
         }
-        matrices.push_back(singleChannelMatrix);
-    }
+        multipleChannelVectors.push_back(singleChannelVector);
 
-    return matrices;
+        return multipleChannelVectors;
+    }
 }
+
 
 mat StateSpaceModelSimulation::convertArrayTo2dMatrix(float arr[], int row, int col)
 {
@@ -136,13 +201,6 @@ mat StateSpaceModelSimulation::convertArrayTo2dMatrix(float arr[], int row, int 
     mat Out = mat(row, col, arr);
     return Out;
 }
-
-
-
-
-//==============================================================================
-
-
 
 
 
