@@ -26,8 +26,12 @@ public:
 
     using mat = juce::dsp::Matrix<float>;
 
-    void feedToSteadyStateEquation(juce::AudioBuffer<float>& buffer, std::vector<StateSpaceModelSimulation>& ssmsVector);
+    void feedToSteadyStateEquation(juce::AudioBuffer<float>& buffer, int systemSize);
  
+    void keepPreviousStateForNextInitSystemI();
+    void keepPreviousStateForNextInitSystemII();
+
+
     void processBlock(juce::AudioBuffer<float> &buffer);
 
     void reset();
@@ -41,8 +45,8 @@ private:
 
     //state space model simulation classes for stereo
     StateSpaceModelSimulation ssms;
-    std::vector<StateSpaceModelSimulation> ssmsVector_v2i; //for n-channels
-    std::vector<StateSpaceModelSimulation> ssmsVector_i2a; //for n-channels
+    StateSpaceModelSimulation ssms_v2i; //for n-channels
+    StateSpaceModelSimulation ssms_i2a; //for n-channels
 
     //StateSpaceModelSimulation ssmsLeft_v2i;
     //StateSpaceModelSimulation ssmsRight_v2i;
@@ -109,15 +113,22 @@ private:
     mat ssm_i2a_C;
     mat ssm_i2a_D;
 
-    juce::HeapBlock<float> x_1next;
-    juce::HeapBlock<float> x_2next;
-    juce::HeapBlock<float> x_3next;
-    juce::HeapBlock<float> x_4next;
+    juce::HeapBlock<float> z1;
+    juce::HeapBlock<float> z2;
+    juce::HeapBlock<float> z3;
+    juce::HeapBlock<float> z4;
+
+    juce::HeapBlock<float> w1;
+    juce::HeapBlock<float> w2;
+    juce::HeapBlock<float> w3;
+    juce::HeapBlock<float> w4;
 
 
     //==============================================================================
 
     juce::AudioBuffer<float> bufferForMeasurement;
+    juce::AudioBuffer<float> bufferForInitialStateSystemI; //previous 4 samples
+    juce::AudioBuffer<float> bufferForInitialStateSystemII; //previous 4 samples
     juce::dsp::ProcessSpec spec; //samplerate etc.
     float vuLevelArrayLeft;
     float vuLevelArrayRight;

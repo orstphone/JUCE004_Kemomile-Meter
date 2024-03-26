@@ -41,16 +41,19 @@ public:
     //==============================================================================
 
 
-    //sets x0 and u
+    //sets x0 with buffer
     void setInitStateVector(juce::AudioBuffer<float> &initialBuffer, int systemSize);
     
-    void setInitStateVector(std::vector<mat> initialState, int systemSize);
+    //sets x0 with matrix vector
+    void setInitStateVector(std::vector<mat> &initialState, int systemSize);
 
+    //Audiobuffer to 1x1 mat u
     void setInputSequence(juce::AudioBuffer<float>& buffer);
 
-    void setInputSequence(std::vector<std::vector<float>> inputSequence);
+    //mat vector to 1x1 mat u
+    void setInputSequence(std::vector<mat> &inputSequence);
 
-    //sets A B C D and 
+    //sets A B C D and x0, x, sysSize for validification
     void hardReset(mat A, mat B, mat C, mat D,
         juce::AudioBuffer<float>& buffer, juce::AudioBuffer<float>& initialBuffer, int systemSize);
 
@@ -59,10 +62,10 @@ public:
     //stateSpaceModel for mono channel
     void runSimulation(int channel);
 
-    void concatenateOutput();
 
-    mat getOutputVectorVector();
+    std::vector<mat> getSimulatedOutputMatrix();
 
+    //preprocessing
     //audioBuffer to n channel vector 
     std::vector<std::vector<float>> convertBufferToVector(juce::AudioBuffer<float>& buffer);
 
@@ -71,19 +74,17 @@ public:
 
 
 
+
+    //==============================================================================
 private:
-
-
-
-    int numChannels;
+ int numChannels;
     int m, n, r, timeSamples;
     mat A, B, C, D;
     std::vector<mat> x0; //initstate vector for multichannel matrix input
-    std::vector<std::vector<float>> u; //input sequence vectors for multi channel scalar input
+    std::vector<mat> u; //input sequence vectors for multi channel scalar input
 
-    mat x_simulated; //statevector simulated
-    mat y_simulated; //ouputmatrix simulated
-    std::vector<std::vector<float>> y; //outputVector simulated
+    std::vector<mat> x_sim; //statevector simulated
+    std::vector<mat> y_sim; //ouputmatrix simulated
     mat timeRowVector;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (StateSpaceModelSimulation)
