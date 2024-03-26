@@ -127,6 +127,9 @@ private:
     //==============================================================================
 
     juce::AudioBuffer<float> bufferForMeasurement;
+    std::vector<mat> outputPostSystemI;
+    std::vector<mat> outputPostSystemII;
+
     juce::AudioBuffer<float> bufferForInitialStateSystemI; //previous 4 samples
     juce::AudioBuffer<float> bufferForInitialStateSystemII; //previous 4 samples
     juce::dsp::ProcessSpec spec; //samplerate etc.

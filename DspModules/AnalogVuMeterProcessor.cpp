@@ -111,13 +111,13 @@ void AnalogVuMeterProcessor::prepareToPlay(double sampleRate, int numberOfInputC
 
 
 
-    ssms_v2i.hardReset(ssm_v2i_A, ssm_v2i_B, ssm_v2i_C, ssm_v2i_D, bufferForMeasurement, bufferForInitialState, sysDim);
+    ssms_v2i.hardReset(ssm_v2i_A, ssm_v2i_B, ssm_v2i_C, ssm_v2i_D, bufferForMeasurement, bufferForInitialStateSystemI, sysDim);
 
-    ssms_i2a.hardReset(ssm_v2i_A, ssm_v2i_B, ssm_v2i_C, ssm_v2i_D, bufferForMeasurement, bufferForInitialState, sysDim);   
+    ssms_i2a.hardReset(ssm_v2i_A, ssm_v2i_B, ssm_v2i_C, ssm_v2i_D, bufferForMeasurement, bufferForInitialStateSystemII, sysDim);   
 }
 
 
-
+//virtually the main function
 void AnalogVuMeterProcessor::feedToSteadyStateEquation(juce::AudioBuffer<float>& buffer, int systemSize) //_buffer == rectified one
 {
 
@@ -142,11 +142,11 @@ void AnalogVuMeterProcessor::feedToSteadyStateEquation(juce::AudioBuffer<float>&
 
     keepPreviousStateForNextInitSystemI();
 
-
+    DBG("System I ends here");
 
     //*********************************************************  System II Current to Needlepoint Angle
     //acquire result matrix vector y from SystemI 
-    auto& outputPostSystemI = ssms_v2i.getSimulatedOutputMatrix();
+    outputPostSystemI = ssms_v2i.getSimulatedOutputMatrix();
 
     //prep x and x0
     ssms_i2a.setInitStateVector(bufferForInitialStateSystemII, sysDim);
@@ -158,8 +158,9 @@ void AnalogVuMeterProcessor::feedToSteadyStateEquation(juce::AudioBuffer<float>&
         ssms_i2a.runSimulation(ch);
     }
 
-    auto& outputPostSystemII = ssms_i2a.getSimulatedOutputMatrix();
+    outputPostSystemII = ssms_i2a.getSimulatedOutputMatrix();
     keepPreviousStateForNextInitSystemII(); //for next block; : prepareToPlay will be skipped next time.
+    DBG("System II ends here");
 
 }
 
@@ -181,7 +182,7 @@ void AnalogVuMeterProcessor::keepPreviousStateForNextInitSystemI()
 }
 
 
-void AnalogVuMeterProcessor::keepPreviousStateForNextInitSystemI()
+void AnalogVuMeterProcessor::keepPreviousStateForNextInitSystemII()
 {
     auto numChannels = bufferForInitialStateSystemII.getNumChannels();
     auto numSamples = bufferForInitialStateSystemII.getNumSamples();
